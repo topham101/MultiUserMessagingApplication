@@ -1,0 +1,13 @@
+﻿Protocol Outline
+
+Message Structure
+"#[Message Code]\r\n[Message]\r\n\r\n##"
+
+Notes:
+- The message code must be in 3 digit format
+- The message must not contain the string "\r\n\r\n##"
+- Both "\r" and "\n" are regular expression characters representing
+	Line-Feed and Carriage-Return respectively.
+
+Message Codes
+[Defined in "ProtocolCodes.txt"]

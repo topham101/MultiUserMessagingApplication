@@ -1,0 +1,16 @@
+﻿<Window x:Class="MessagingClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MessagingClient"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="152,72,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="58" Width="162"/>
+        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Center" Margin="215,179,203,0"
+                VerticalAlignment="Top" Width="99" Height="26" Click="ConnectButton_Click"/>
+        <Button x:Name="button" Content="Close Connection" HorizontalAlignment="Center" Margin="215,238,203,0"
+                VerticalAlignment="Top" Width="99" />
+    </Grid>
+</Window>
