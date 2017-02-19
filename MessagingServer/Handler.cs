@@ -56,14 +56,14 @@ namespace MessagingServer
 
         public void messageHandler(string recMessage)
         {
-            // handle messages - sent return update
+            // handle messages - send return update
         }
 
-        public bool sendMessage(string message)
+        public bool sendMessage(Message message)
         {
             try
             {
-                sw.WriteLine(message + '#');
+                sw.WriteLine(message.generateMessage());
                 sw.Flush();
             }
             catch
@@ -75,23 +75,55 @@ namespace MessagingServer
 
         public bool connectionWorking()
         {
-            if (sendMessage("001. Connection Test Request") && readStream() == "002. Connection Test Confirmation")
+            if (sendMessage(new Message(MessageCode.C001, string.Empty))
+                && readAndInterpretMessage().Code == MessageCode.C002)
                 return true;
             else
             {
                 Thread.Sleep(300);
                 if (readStream() == "Connection Tested")
-                return true;
+                    return true;
             }
             return false;
         }
 
-        public string readStream()
+        public Message readAndInterpretMessage() // Add better validation later
+        {
+            string streamData = readStream();
+            if (string.IsNullOrEmpty(streamData))
+                throw new Exception("BAD MESSAGE RECEIVED");
+
+            // Extract Error Code
+            int errorCodeNum;
+            string errorCodeStr = streamData.Substring(2-4);
+            if (!int.TryParse(streamData.Substring(2 - 4), out errorCodeNum))
+                throw new Exception("BAD MESSAGE RECEIVED");
+            MessageCode code = (MessageCode)errorCodeNum;
+
+            // Extract Message
+            int messageStart = streamData.IndexOf("\r\n");
+            int messageEnd = streamData.LastIndexOf("\r\n\r\n##");
+            string receivedMessage = streamData.Substring(messageStart,
+                messageEnd - messageStart);
+
+            return new Message(code, receivedMessage);
+        }
+
+        public string readStream() // IMPROVE LATER to work with bad messages better
         {
             string fullInput = "";
             while (sr.Peek() >= 0)
-                fullInput += sr.ReadLine() + "\r\n";
-            return fullInput;
+            {
+                string tempstring = sr.ReadLine();
+                if (tempstring.StartsWith("~~") || fullInput.StartsWith("~~"))
+                {
+                    fullInput += tempstring;
+                    if (tempstring.EndsWith("##"))
+                        return fullInput;
+                    fullInput += "\r\n";
+                }
+            }
+            return null;
         }
     }
 }

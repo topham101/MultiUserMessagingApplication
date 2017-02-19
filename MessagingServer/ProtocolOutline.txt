@@ -1,7 +1,7 @@
 ﻿Protocol Outline
 
 Message Structure
-"#[Message Code]\r\n[Message]\r\n\r\n##"
+"~~[Message Code]\r\n[Message]\r\n\r\n##"
 
 Notes:
 - The message code must be in 3 digit format
