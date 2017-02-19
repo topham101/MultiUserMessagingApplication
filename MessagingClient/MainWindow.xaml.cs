@@ -23,6 +23,9 @@ namespace MessagingClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private TcpClient Client;
+        StreamReader sr;
+        StreamWriter sw;
         public MainWindow()
         {
             InitializeComponent();
@@ -32,17 +35,23 @@ namespace MessagingClient
         {
             try
             {
-                TcpClient Client = new TcpClient();
+                Client = new TcpClient();
                 Client.Connect("localhost", 25566);
                 if (Client.Connected)
                 {
                     textBlock1.Text = "Connected";
-                    StreamReader sr = new StreamReader(Client.GetStream());
-                    StreamWriter sw = new StreamWriter(Client.GetStream());
-                    sw.WriteLine("Message");
+
+                    sr = new StreamReader(Client.GetStream());
+                    sw = new StreamWriter(Client.GetStream());
+                    string fullInput = "";
+                    while (sr.Peek() >= 0)
+                    {
+                        fullInput += sr.ReadLine() + "\r\n";
+                    }
+                    textBlock1.Text = fullInput;
+
+                    sw.WriteLine("~~002\r\n\r\n\r\n##");
                     sw.Flush();
-                    string received = sr.ReadToEnd();
-                    textBlock1.Text += "\r\n" + received;
                     Client.Close();
                 }
             }
@@ -50,6 +59,24 @@ namespace MessagingClient
             {
                 textBlock1.Text = "ERROR";
             }
+            finally
+            {
+                sr.Close();
+                sw.Close();
+                Client.Close();
+                Environment.Exit(58);
+            }
+        }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            if (sr != null)
+                sr.Close();
+            if (sw != null)
+                sw.Close();
+            if (Client != null)
+                Client.Close();
+            Environment.Exit(0);
         }
     }
 }

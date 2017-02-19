@@ -39,14 +39,13 @@ namespace MessagingServer
             connection.Close();
         }
 
-        public void socketPoll(Socket connection)
+        private void socketPoll(Socket connection)
         {
             while (connection.IsConnected())
             {
                 // Check for messages
-                string message = readStream();
-                if (!string.IsNullOrEmpty(message))
-                    messageHandler(message); // Handle Messages
+                if (sr.Peek() >= 0)
+                    messageHandler(readAndInterpretMessage()); // Handle Messages
 
                 // Wait
                 Thread.Sleep(PollRateMS);
@@ -54,12 +53,12 @@ namespace MessagingServer
             return;
         }
 
-        public void messageHandler(string recMessage)
+        private void messageHandler(Message recMessage) // amend later
         {
-            // handle messages - send return update
+            Console.WriteLine("MESSAGE RECEIVED: " + recMessage.Code.ToString() + recMessage.MessageString);
         }
 
-        public bool sendMessage(Message message)
+        private bool sendMessage(Message message)
         {
             try
             {
@@ -73,7 +72,7 @@ namespace MessagingServer
             return true;
         }
 
-        public bool connectionWorking()
+        private bool connectionWorking()
         {
             if (sendMessage(new Message(MessageCode.C001, string.Empty))
                 && readAndInterpretMessage().Code == MessageCode.C002)
@@ -81,13 +80,13 @@ namespace MessagingServer
             else
             {
                 Thread.Sleep(300);
-                if (readStream() == "Connection Tested")
+                if (readAndInterpretMessage().Code == MessageCode.C002)
                     return true;
             }
             return false;
         }
 
-        public Message readAndInterpretMessage() // Add better validation later
+        private Message readAndInterpretMessage() // Add better validation later
         {
             string streamData = readStream();
             if (string.IsNullOrEmpty(streamData))
@@ -95,8 +94,7 @@ namespace MessagingServer
 
             // Extract Error Code
             int errorCodeNum;
-            string errorCodeStr = streamData.Substring(2-4);
-            if (!int.TryParse(streamData.Substring(2 - 4), out errorCodeNum))
+            if (!int.TryParse(streamData.Substring(2, 3), out errorCodeNum))
                 throw new Exception("BAD MESSAGE RECEIVED");
             MessageCode code = (MessageCode)errorCodeNum;
 
@@ -109,7 +107,7 @@ namespace MessagingServer
             return new Message(code, receivedMessage);
         }
 
-        public string readStream() // IMPROVE LATER to work with bad messages better
+        private string readStream() // IMPROVE LATER to work with bad messages better
         {
             string fullInput = "";
             while (sr.Peek() >= 0)

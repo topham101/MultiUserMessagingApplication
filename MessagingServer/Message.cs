@@ -19,19 +19,21 @@ namespace MessagingServer
             MessageString = _MessageString;
         }
         public MessageCode Code { get; set; }
+
+        private string messageString;
         public string MessageString
         {
-            get { return MessageString; }
+            get { return messageString; }
             set {
-                if (!string.IsNullOrEmpty(value) && !value.Contains("\r\n\r\n##"))
-                    MessageString = value;
-                else throw new Exception("BAD INPUT");
+                if (!string.IsNullOrWhiteSpace(value) && !value.Contains("\r\n\r\n##"))
+                    messageString = value;
+                else messageString = string.Empty;
             }
         }
         public string generateMessage()
         {
             return string.Format("~~{0}\r\n{1}\r\n\r\n##", 
-                MessageCodes.MessageCodeDict[(int)Code], MessageString);//FINISH
+                (int)Code, MessageString);//FINISH
         }
     }
 }

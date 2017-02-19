@@ -7,10 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="152,72,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="58" Width="162"/>
+        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="89,20,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="144" Width="326" Foreground="Black"/>
         <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Center" Margin="215,179,203,0"
                 VerticalAlignment="Top" Width="99" Height="26" Click="ConnectButton_Click"/>
-        <Button x:Name="button" Content="Close Connection" HorizontalAlignment="Center" Margin="215,238,203,0"
-                VerticalAlignment="Top" Width="99" />
+        <Button x:Name="button" Content="Close" HorizontalAlignment="Center" Margin="215,238,203,0"
+                VerticalAlignment="Top" Width="99" Click="button_Click" />
+        <Button x:Name="button1" Content="send" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="75,205,0,0"/>
     </Grid>
 </Window>
