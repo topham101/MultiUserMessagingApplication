@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using MessagingServer;
 
 namespace MessagingClient
 {
@@ -33,42 +34,59 @@ namespace MessagingClient
 
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (Client == null)
             {
-                Client = new TcpClient();
-                Client.Connect("localhost", 25566);
-                if (Client.Connected)
+                try
                 {
-                    textBlock1.Text = "Connected";
-
-                    sr = new StreamReader(Client.GetStream());
-                    sw = new StreamWriter(Client.GetStream());
-                    string fullInput = "";
-                    while (sr.Peek() >= 0)
+                    Client = new TcpClient();
+                    Client.Connect("localhost", 25566);
+                    if (Client.Connected)
                     {
-                        fullInput += sr.ReadLine() + "\r\n";
-                    }
-                    textBlock1.Text = fullInput;
+                        OutputTextBlock.Text = "Connected";
 
-                    sw.WriteLine("~~002\r\n\r\n\r\n##");
-                    sw.Flush();
-                    Client.Close();
+                        sr = new StreamReader(Client.GetStream());
+                        sw = new StreamWriter(Client.GetStream());
+
+                        Message serverMessageObj = Message.InterpretString(ReadFullStream());
+                        OutputTextBlock.Text += serverMessageObj.MessageString;
+
+                        if (serverMessageObj.Code == MessageCode.C001)
+                            SendMessage(new Message(MessageCode.C002, string.Empty));
+                        else throw new Exception("No Connection Test Received");
+                        return;
+                        // Start polling connection to see if it's working
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                textBlock1.Text = "ERROR";
-            }
-            finally
-            {
-                sr.Close();
-                sw.Close();
-                Client.Close();
-                Environment.Exit(58);
+                catch (Exception exc)
+                {
+                    OutputTextBlock.Text = "ERROR: " + exc.ToString();
+                    sr.Close();
+                    sw.Close();
+                    Client.Close();
+                    Environment.Exit(58);
+                }
             }
         }
 
-        private void button_Click(object sender, RoutedEventArgs e)
+        private string ReadFullStream()
+        {
+            string fullInput = "";
+            while (sr.Peek() >= 0)
+            {
+                fullInput += sr.ReadLine() + "\r\n";
+            }
+            sr.DiscardBufferedData();
+            return fullInput;
+        }
+
+        private void SendMessage(Message message)
+        {
+            string thing = message.generateMessage();
+            sw.WriteLine(thing);
+            sw.Flush();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             if (sr != null)
                 sr.Close();
@@ -77,6 +95,11 @@ namespace MessagingClient
             if (Client != null)
                 Client.Close();
             Environment.Exit(0);
+        }
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            SendMessage(new Message(MessageCode.C003, MessageTextBox.Text));
         }
     }
 }

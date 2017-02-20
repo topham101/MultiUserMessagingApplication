@@ -7,11 +7,15 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <TextBlock x:Name="textBlock1" HorizontalAlignment="Left" Margin="89,20,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="144" Width="326" Foreground="Black"/>
-        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Center" Margin="215,179,203,0"
-                VerticalAlignment="Top" Width="99" Height="26" Click="ConnectButton_Click"/>
-        <Button x:Name="button" Content="Close" HorizontalAlignment="Center" Margin="215,238,203,0"
-                VerticalAlignment="Top" Width="99" Click="button_Click" />
-        <Button x:Name="button1" Content="send" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="75,205,0,0"/>
+        <TextBlock x:Name="OutputTextBlock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" 
+                   Text="" VerticalAlignment="Top" Height="220" Width="240" Foreground="Black"/>
+        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Right" Margin="0,280,20,0"
+                VerticalAlignment="Top" Width="100" Height="26" Click="ConnectButton_Click"/>
+        <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Margin="20,280,0,0"
+                VerticalAlignment="Top" Width="100" Click="CloseButton_Click" Height="26" />
+        <Button x:Name="SendButton" Content="Send" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100"
+                Margin="0,280,0,0" Height="26" Click="SendButton_Click"/>
+        <TextBox x:Name="MessageTextBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
+                 Text="" VerticalAlignment="Top" Width="240" Margin="0,250,0,0"/>
     </Grid>
 </Window>

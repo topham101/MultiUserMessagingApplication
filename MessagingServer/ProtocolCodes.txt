@@ -1,2 +1,3 @@
 ﻿001> Connection Test Request;
 002> Connection Test Confirmation;
+003> Message

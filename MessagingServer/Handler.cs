@@ -44,9 +44,18 @@ namespace MessagingServer
             while (connection.IsConnected())
             {
                 // Check for messages
-                if (sr.Peek() >= 0)
-                    messageHandler(readAndInterpretMessage()); // Handle Messages
+                try
+                {
+                    if (sr.Peek() >= 0) // CHANGE to read until false and use out value
+                        messageHandler(Message.InterpretString(readStream())); // Handle Messages
 
+                }
+                catch
+                {
+                    Console.WriteLine("PEEK ERROR");
+                    return;
+                    throw;
+                }
                 // Wait
                 Thread.Sleep(PollRateMS);
             }
@@ -75,51 +84,38 @@ namespace MessagingServer
         private bool connectionWorking()
         {
             if (sendMessage(new Message(MessageCode.C001, string.Empty))
-                && readAndInterpretMessage().Code == MessageCode.C002)
+                && Message.InterpretString(readStream()).Code == MessageCode.C002)
                 return true;
             else
             {
                 Thread.Sleep(300);
-                if (readAndInterpretMessage().Code == MessageCode.C002)
+                if (Message.InterpretString(readStream()).Code == MessageCode.C002)
                     return true;
             }
             return false;
         }
 
-        private Message readAndInterpretMessage() // Add better validation later
-        {
-            string streamData = readStream();
-            if (string.IsNullOrEmpty(streamData))
-                throw new Exception("BAD MESSAGE RECEIVED");
-
-            // Extract Error Code
-            int errorCodeNum;
-            if (!int.TryParse(streamData.Substring(2, 3), out errorCodeNum))
-                throw new Exception("BAD MESSAGE RECEIVED");
-            MessageCode code = (MessageCode)errorCodeNum;
-
-            // Extract Message
-            int messageStart = streamData.IndexOf("\r\n");
-            int messageEnd = streamData.LastIndexOf("\r\n\r\n##");
-            string receivedMessage = streamData.Substring(messageStart,
-                messageEnd - messageStart);
-
-            return new Message(code, receivedMessage);
-        }
-
         private string readStream() // IMPROVE LATER to work with bad messages better
         {
-            string fullInput = "";
-            while (sr.Peek() >= 0)
+            try
             {
-                string tempstring = sr.ReadLine();
-                if (tempstring.StartsWith("~~") || fullInput.StartsWith("~~"))
+                string fullInput = "";
+                while (sr.Peek() >= 0)
                 {
-                    fullInput += tempstring;
-                    if (tempstring.EndsWith("##"))
-                        return fullInput;
-                    fullInput += "\r\n";
+                    string tempstring = sr.ReadLine();
+                    if (tempstring.StartsWith("~~") || fullInput.StartsWith("~~"))
+                    {
+                        fullInput += tempstring;
+                        if (tempstring.EndsWith("##"))
+                            return fullInput;
+                        fullInput += "\r\n";
+                    }
                 }
+            }
+            catch{}
+            finally
+            {
+                sr.DiscardBufferedData();
             }
             return null;
         }
