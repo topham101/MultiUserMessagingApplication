@@ -17,7 +17,8 @@ namespace MessagingServer
     // change MessageCodeTable to read from text file
     // send messages to people who are offline
     // attempt fix of protocol code file
-    // add to github
+    // signup user ability
+
     class Program
     {
         static void Main(string[] args)

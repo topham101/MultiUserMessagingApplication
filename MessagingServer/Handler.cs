@@ -28,6 +28,7 @@ namespace MessagingServer
             // Test client for response
             if (connectionWorking())
             {
+                Console.WriteLine("Connection Working: " + ip);
                 // start socket poll
                 socketPoll(connection);
             }
@@ -37,6 +38,7 @@ namespace MessagingServer
             sr.Close();
             socketStream.Close();
             connection.Close();
+            Console.WriteLine("Connection Closed: " + ip);
         }
 
         private void socketPoll(Socket connection)
@@ -47,7 +49,14 @@ namespace MessagingServer
                 try
                 {
                     if (sr.Peek() >= 0) // CHANGE to read until false and use out value
-                        messageHandler(Message.InterpretString(readStream())); // Handle Messages
+                    {
+                        string nextMessage = string.Empty;
+                        while (readNextMessage(out nextMessage))
+                        {
+                            messageHandler(Message.InterpretString(nextMessage)); // Handle Messages 
+                            nextMessage = string.Empty;
+                        }
+                    }
 
                 }
                 catch
@@ -83,20 +92,26 @@ namespace MessagingServer
 
         private bool connectionWorking()
         {
-            if (sendMessage(new Message(MessageCode.C001, string.Empty))
-                && Message.InterpretString(readStream()).Code == MessageCode.C002)
-                return true;
+            string response;
+            if (sendMessage(new Message(MessageCode.C001, string.Empty)))
+            {
+                if (readNextMessage(out response)
+                    && Message.InterpretString(response).Code == MessageCode.C002)
+                    return true;
+            }
             else
             {
                 Thread.Sleep(300);
-                if (Message.InterpretString(readStream()).Code == MessageCode.C002)
+                if (readNextMessage(out response)
+                    && Message.InterpretString(response).Code == MessageCode.C002)
                     return true;
             }
             return false;
         }
 
-        private string readStream() // IMPROVE LATER to work with bad messages better
+        private bool readNextMessage(out string streamData) // IMPROVE LATER to work with bad messages better
         {
+            streamData = string.Empty;
             try
             {
                 string fullInput = "";
@@ -107,7 +122,10 @@ namespace MessagingServer
                     {
                         fullInput += tempstring;
                         if (tempstring.EndsWith("##"))
-                            return fullInput;
+                        {
+                            streamData = fullInput;
+                            return true;
+                        }
                         fullInput += "\r\n";
                     }
                 }
@@ -117,7 +135,7 @@ namespace MessagingServer
             {
                 sr.DiscardBufferedData();
             }
-            return null;
+            return false;
         }
     }
 }
