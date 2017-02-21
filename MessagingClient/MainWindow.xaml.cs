@@ -31,7 +31,7 @@ namespace MessagingClient
         {
             InitializeComponent();
         }
-
+        
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
             if (Client == null)

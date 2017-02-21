@@ -48,7 +48,7 @@ namespace MessagingServer
                 // Check for messages
                 try
                 {
-                    if (sr.Peek() >= 0) // CHANGE to read until false and use out value
+                    if (sr.Peek() >= 0)
                     {
                         string nextMessage = string.Empty;
                         while (readNextMessage(out nextMessage))
@@ -57,7 +57,6 @@ namespace MessagingServer
                             nextMessage = string.Empty;
                         }
                     }
-
                 }
                 catch
                 {
@@ -66,7 +65,7 @@ namespace MessagingServer
                     throw;
                 }
                 // Wait
-                Thread.Sleep(PollRateMS);
+                Task.Delay(PollRateMS);
             }
             return;
         }

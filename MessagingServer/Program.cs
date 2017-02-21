@@ -51,10 +51,9 @@ namespace MessagingServer
                 {
                     connection = listener.AcceptSocket();
                     connectionHandler = new Handler();
-                    Thread t = new Thread(
-                        () => connectionHandler.beginHandle(connection));
+                    Task task = new Task(() => connectionHandler.beginHandle(connection));
+                    task.Start();
                     Console.WriteLine("Connection Found . . .");
-                    t.Start();
                 }
             }
             catch (Exception e)
@@ -63,6 +62,11 @@ namespace MessagingServer
                     + Environment.NewLine + e.ToString());
                 throw;
             }
+        }
+
+        public static void testFunc()
+        {
+
         }
     }
 }
