@@ -24,6 +24,7 @@ namespace MessagingClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        public const int MYID = 1;
         private TcpClient Client;
         StreamReader sr;
         StreamWriter sw;
@@ -51,7 +52,7 @@ namespace MessagingClient
                         OutputTextBlock.Text += serverMessageObj.MessageString;
 
                         if (serverMessageObj.Code == MessageCode.C001)
-                            SendMessage(new Message(MessageCode.C002, string.Empty));
+                            SendMessage(new Message(MessageCode.C002, MYID, 0, string.Empty));
                         else throw new Exception("No Connection Test Received");
                         return;
                         // Start polling connection to see if it's working
@@ -99,7 +100,7 @@ namespace MessagingClient
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage(new Message(MessageCode.C003, MessageTextBox.Text));
+            SendMessage(new Message(MessageCode.C003, MYID, 0, MessageTextBox.Text));
         }
     }
 }

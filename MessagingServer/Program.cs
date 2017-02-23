@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Configuration;
+using System.Data.SqlClient;
+using System.Collections.Concurrent;
 
 namespace MessagingServer
 {
@@ -21,6 +24,9 @@ namespace MessagingServer
 
     class Program
     {
+        public static ConcurrentDictionary<int, ConcurrentQueue<Message>> USERSdictionary
+            = new ConcurrentDictionary<int, ConcurrentQueue<Message>>();
+
         static void Main(string[] args)
         {
             if (!MessageCodes.PopulateDictionary())

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,14 +8,21 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
+using System.Collections.Concurrent;
 
 namespace MessagingServer
 {
     public class Handler
     {
+        public static string GlobalConnectionString = 
+            Properties.Settings.Default.MessagingServerConnectionString;
+
         private const int PollRateMS = 500;
         private StreamReader sr;
         private StreamWriter sw;
+
+        private int connectedUserID;
 
         public void beginHandle(Socket connection)
         {
@@ -23,12 +31,23 @@ namespace MessagingServer
             sw = new StreamWriter(socketStream);
             string ip = connection.RemoteEndPoint.ToString();
 
-            // Send connection info and data ~ contacts list
 
             // Test client for response
             if (connectionWorking())
             {
-                Console.WriteLine("Connection Working: " + ip);
+                Console.WriteLine("Connection Working: " + ip + " USER: "
+                    + connectedUserID.ToString("D4"));
+                if (Program.USERSdictionary.TryAdd(
+                    connectedUserID,new ConcurrentQueue<Message>()))
+                {
+                    Console.WriteLine("Dictionary element added successfully (ID: "
+                        + connectedUserID + ")");
+                }
+
+
+                // Send connection info and data ~ contacts list
+
+
                 // start socket poll
                 socketPoll(connection);
             }
@@ -72,7 +91,38 @@ namespace MessagingServer
 
         private void messageHandler(Message recMessage) // amend later
         {
-            Console.WriteLine("MESSAGE RECEIVED: " + recMessage.Code.ToString() + recMessage.MessageString);
+            Console.WriteLine("User " + recMessage.senderID.ToString("D4") + " sent: "
+                + Environment.NewLine + recMessage.Code.ToString() + " "
+                + recMessage.MessageString);
+            //SqlConnection connection = new SqlConnection(Handler.GlobalConnectionString);
+            //connection.Open();
+            //SqlCommand insert = new SqlCommand(@"");
+            //insert.
+
+            switch (recMessage.Code)
+            {
+                case MessageCode.C003:
+                    if (recMessage.receiverID != 0)
+                    {
+                        ConcurrentQueue<Message> MessageQueue;
+                        if (Program.USERSdictionary.TryGetValue(0, out MessageQueue))
+                        {
+                            MessageQueue.Enqueue(recMessage); // FINISH
+                        }
+                    }
+                    break;
+                case MessageCode.C001:
+                    break;
+                case MessageCode.C002:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void PassOnMessage()
+        {
+            
         }
 
         private bool sendMessage(Message message)
@@ -89,21 +139,33 @@ namespace MessagingServer
             return true;
         }
 
-        private bool connectionWorking()
+        private bool connectionWorking() // ADD LOGIN DETAILS LATER
         {
             string response;
-            if (sendMessage(new Message(MessageCode.C001, string.Empty)))
+            if (sendMessage(new Message(MessageCode.C001, 0, 0, string.Empty)))
             {
-                if (readNextMessage(out response)
-                    && Message.InterpretString(response).Code == MessageCode.C002)
-                    return true;
+                if (readNextMessage(out response))
+                {
+                    Message recMess = Message.InterpretString(response);
+                    if (recMess.Code == MessageCode.C002)
+                    {
+                        connectedUserID = recMess.senderID;
+                        return true;
+                    }
+                }
             }
             else
             {
                 Thread.Sleep(300);
-                if (readNextMessage(out response)
-                    && Message.InterpretString(response).Code == MessageCode.C002)
-                    return true;
+                if (readNextMessage(out response))
+                {
+                    Message recMess = Message.InterpretString(response);
+                    if (recMess.Code == MessageCode.C002)
+                    {
+                        connectedUserID = recMess.senderID;
+                        return true;
+                    }
+                }
             }
             return false;
         }

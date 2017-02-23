@@ -1,13 +1,15 @@
 ﻿Protocol Outline
 
 Message Structure
-"~~[Message Code]\r\n[Message]\r\n\r\n##"
+"~~[Message Code]\r\n[senderID][receiverID][Message]\r\n\r\n##"
 
 Notes:
 - The message code must be in 3 digit format
 - The message must not contain the string "\r\n\r\n##"
 - Both "\r" and "\n" are regular expression characters representing
 	Line-Feed and Carriage-Return respectively.
+- ID's must be in four digit format
+- The ID '0000' refers to the server itself or an unknown user.
 
 Message Codes
 [Defined in "ProtocolCodes.txt"]

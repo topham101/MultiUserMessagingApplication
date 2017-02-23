@@ -14,12 +14,16 @@ namespace MessagingServer
     }
     public class Message
     {
-        public Message(MessageCode _Code, string _MessageString)
+        public Message(MessageCode _Code, int senderID, int receiverID, string _MessageString)
         {
             Code = _Code;
+            this.senderID = senderID;
+            this.receiverID = receiverID;
             MessageString = _MessageString;
         }
         public MessageCode Code { get; set; }
+        public int senderID { get; private set; }
+        public int receiverID { get; private set; }
 
         private string messageString;
         public string MessageString
@@ -33,8 +37,9 @@ namespace MessagingServer
         }
         public string generateMessage()
         {
-            return string.Format("~~{0}\r\n{1}\r\n\r\n##", 
-                ((int)Code).ToString("D3"), MessageString);//FINISH
+            return string.Format("~~{0}\r\n{1}{2}{3}\r\n\r\n##",
+                ((int)Code).ToString("D3"), senderID.ToString("D4"),
+                receiverID.ToString("D4"), MessageString);//FINISH
         }
 
         public static Message InterpretString(string streamData) // Add better validation later
@@ -48,13 +53,24 @@ namespace MessagingServer
                 throw new Exception("BAD MESSAGE RECEIVED");
             MessageCode code = (MessageCode)errorCodeNum;
 
+            // Extract Sender ID
+            int messageStart = streamData.IndexOf("\r\n") + 2;
+            int mesSenderID;
+            if (!int.TryParse(streamData.Substring(messageStart, 4), out mesSenderID))
+                throw new Exception("BAD MESSAGE RECEIVED");
+
+            // Extract Receiver ID
+            int receiverID;
+            if (!int.TryParse(streamData.Substring(messageStart + 4, 4), out receiverID))
+                throw new Exception("BAD MESSAGE RECEIVED");
+
             // Extract Message
-            int messageStart = streamData.IndexOf("\r\n");
+            messageStart += 8;
             int messageEnd = streamData.LastIndexOf("\r\n\r\n##");
             string receivedMessage = streamData.Substring(messageStart,
                 messageEnd - messageStart);
 
-            return new Message(code, receivedMessage);
+            return new Message(code, mesSenderID, receiverID, receivedMessage);
         }
     }
 }
