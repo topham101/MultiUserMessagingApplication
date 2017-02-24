@@ -1,3 +1,5 @@
 ﻿001> Connection Test Request;
 002> Connection Test Confirmation;
-003> Message
+003> Message for another user;
+004> Message pass-on successful;
+005> Message pass-on failed;

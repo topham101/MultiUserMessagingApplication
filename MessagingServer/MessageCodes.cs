@@ -23,8 +23,8 @@ namespace MessagingServer
                 string[] results = protocolCodes.Split(seperators,
                     StringSplitOptions.RemoveEmptyEntries);
                 char[] trimChars = new char[] { '\r', '\n' };
-                foreach (string item in results)
-                    item.TrimStart(trimChars);
+                for (int i = 0; i < results.Length; i++)
+                    results[i] = results[i].TrimStart(trimChars);
 
                 if (results.Length % 2 == 0)
                 {

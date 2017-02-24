@@ -21,6 +21,7 @@ namespace MessagingServer
     // send messages to people who are offline
     // attempt fix of protocol code file
     // signup user ability
+    // Tell users if their message has been sent successfully
 
     class Program
     {
@@ -33,6 +34,7 @@ namespace MessagingServer
             {
                 Console.WriteLine("ProtocolCodes.txt is INVALID.");
                 Console.WriteLine("Please fix and start again.");
+                Console.ReadKey();
                 Environment.Exit(0);
             }
             Console.WriteLine("Protocol Codes Read");

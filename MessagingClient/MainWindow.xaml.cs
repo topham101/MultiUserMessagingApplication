@@ -48,7 +48,11 @@ namespace MessagingClient
                         sr = new StreamReader(Client.GetStream());
                         sw = new StreamWriter(Client.GetStream());
 
-                        Message serverMessageObj = Message.InterpretString(ReadFullStream());
+                        string streamData;
+                        if (!sr.ReadNextMessageExt(out streamData))
+                            throw new Exception("");
+
+                        Message serverMessageObj = Message.InterpretString(streamData);
                         OutputTextBlock.Text += serverMessageObj.MessageString;
 
                         if (serverMessageObj.Code == MessageCode.C001)
@@ -100,7 +104,7 @@ namespace MessagingClient
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage(new Message(MessageCode.C003, MYID, 0, MessageTextBox.Text));
+            SendMessage(new Message(MessageCode.C003, MYID, int.Parse(ReceiverTextBox.Text), MessageTextBox.Text));
         }
     }
 }

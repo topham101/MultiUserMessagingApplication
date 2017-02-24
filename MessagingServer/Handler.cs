@@ -23,6 +23,8 @@ namespace MessagingServer
         private StreamWriter sw;
 
         private int connectedUserID;
+        private ConcurrentQueue<Message> userMessages
+            = new ConcurrentQueue<Message>();
 
         public void beginHandle(Socket connection)
         {
@@ -38,7 +40,7 @@ namespace MessagingServer
                 Console.WriteLine("Connection Working: " + ip + " USER: "
                     + connectedUserID.ToString("D4"));
                 if (Program.USERSdictionary.TryAdd(
-                    connectedUserID,new ConcurrentQueue<Message>()))
+                    connectedUserID, userMessages))
                 {
                     Console.WriteLine("Dictionary element added successfully (ID: "
                         + connectedUserID + ")");
@@ -64,24 +66,33 @@ namespace MessagingServer
         {
             while (connection.IsConnected())
             {
-                // Check for messages
                 try
                 {
+                    // Check for messages
                     if (sr.Peek() >= 0)
                     {
                         string nextMessage = string.Empty;
-                        while (readNextMessage(out nextMessage))
+                        while (sr.ReadNextMessageExt(out nextMessage))
                         {
-                            messageHandler(Message.InterpretString(nextMessage)); // Handle Messages 
+                            // Handle Messages 
+                            messagePassOnHandler(Message.InterpretString(nextMessage));
                             nextMessage = string.Empty;
                         }
+                    }
+                    if (userMessages.Count > 0)
+                    {
+                        Message latestMessage;
+                        while (userMessages.TryDequeue(out latestMessage))
+                        {
+                            if (!sendMessage(latestMessage))
+                                throw new Exception();
+                        } 
                     }
                 }
                 catch
                 {
-                    Console.WriteLine("PEEK ERROR");
+                    Console.WriteLine("POLLING ERROR");
                     return;
-                    throw;
                 }
                 // Wait
                 Task.Delay(PollRateMS);
@@ -89,11 +100,12 @@ namespace MessagingServer
             return;
         }
 
-        private void messageHandler(Message recMessage) // amend later
+        private void messagePassOnHandler(Message recMessage) // amend later
         {
             Console.WriteLine("User " + recMessage.senderID.ToString("D4") + " sent: "
                 + Environment.NewLine + recMessage.Code.ToString() + " "
-                + recMessage.MessageString);
+                + recMessage.MessageString + Environment.NewLine + "To: "
+                + recMessage.receiverID);
             //SqlConnection connection = new SqlConnection(Handler.GlobalConnectionString);
             //connection.Open();
             //SqlCommand insert = new SqlCommand(@"");
@@ -106,8 +118,11 @@ namespace MessagingServer
                     {
                         ConcurrentQueue<Message> MessageQueue;
                         if (Program.USERSdictionary.TryGetValue(0, out MessageQueue))
+                            MessageQueue.Enqueue(recMessage);
+                        else
                         {
-                            MessageQueue.Enqueue(recMessage); // FINISH
+                            sendMessage(new Message(MessageCode.C005, 0, connectedUserID,
+                                recMessage.createdTimeStamp.ToString()));
                         }
                     }
                     break;
@@ -118,11 +133,6 @@ namespace MessagingServer
                 default:
                     break;
             }
-        }
-
-        private void PassOnMessage()
-        {
-            
         }
 
         private bool sendMessage(Message message)
@@ -144,7 +154,7 @@ namespace MessagingServer
             string response;
             if (sendMessage(new Message(MessageCode.C001, 0, 0, string.Empty)))
             {
-                if (readNextMessage(out response))
+                if (sr.ReadNextMessageExt(out response))
                 {
                     Message recMess = Message.InterpretString(response);
                     if (recMess.Code == MessageCode.C002)
@@ -153,50 +163,22 @@ namespace MessagingServer
                         return true;
                     }
                 }
-            }
-            else
-            {
-                Thread.Sleep(300);
-                if (readNextMessage(out response))
+                else
                 {
-                    Message recMess = Message.InterpretString(response);
-                    if (recMess.Code == MessageCode.C002)
+                    Task.Delay(500);
+                    if (sr.ReadNextMessageExt(out response))
                     {
-                        connectedUserID = recMess.senderID;
-                        return true;
+                        Message recMess = Message.InterpretString(response);
+                        if (recMess.Code == MessageCode.C002)
+                        {
+                            connectedUserID = recMess.senderID;
+                            return true;
+                        }
                     }
                 }
             }
             return false;
         }
 
-        private bool readNextMessage(out string streamData) // IMPROVE LATER to work with bad messages better
-        {
-            streamData = string.Empty;
-            try
-            {
-                string fullInput = "";
-                while (sr.Peek() >= 0)
-                {
-                    string tempstring = sr.ReadLine();
-                    if (tempstring.StartsWith("~~") || fullInput.StartsWith("~~"))
-                    {
-                        fullInput += tempstring;
-                        if (tempstring.EndsWith("##"))
-                        {
-                            streamData = fullInput;
-                            return true;
-                        }
-                        fullInput += "\r\n";
-                    }
-                }
-            }
-            catch{}
-            finally
-            {
-                sr.DiscardBufferedData();
-            }
-            return false;
-        }
     }
 }
