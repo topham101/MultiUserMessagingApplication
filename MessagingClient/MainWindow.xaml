@@ -8,7 +8,7 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <TextBlock x:Name="OutputTextBlock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" 
-                   Text="" VerticalAlignment="Top" Height="220" Width="240" Foreground="Black"/>
+                   Text="" VerticalAlignment="Top" Height="220" Width="255" Foreground="Black"/>
         <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Right" Margin="0,280,20,0"
                 VerticalAlignment="Top" Width="100" Height="26" Click="ConnectButton_Click"/>
         <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Margin="20,280,0,0"

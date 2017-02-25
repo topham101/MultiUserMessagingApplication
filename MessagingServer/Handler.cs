@@ -33,7 +33,6 @@ namespace MessagingServer
             sw = new StreamWriter(socketStream);
             string ip = connection.RemoteEndPoint.ToString();
 
-
             // Test client for response
             if (connectionWorking())
             {
@@ -43,7 +42,7 @@ namespace MessagingServer
                     connectedUserID, userMessages))
                 {
                     Console.WriteLine("Dictionary element added successfully (ID: "
-                        + connectedUserID + ")");
+                        + connectedUserID.ToString("D4") + ")");
                 }
 
 
@@ -53,7 +52,6 @@ namespace MessagingServer
                 // start socket poll
                 socketPoll(connection);
             }
-
             // Close Thread
             sw.Close();
             sr.Close();
@@ -68,16 +66,16 @@ namespace MessagingServer
             {
                 try
                 {
-                    // Check for messages
-                    if (sr.Peek() >= 0)
+                    while (connection.Available > 0)
                     {
-                        string nextMessage = string.Empty;
-                        while (sr.ReadNextMessageExt(out nextMessage))
+                        string nextMessage;
+                        if (sr.ReadNextMessage(out nextMessage))
                         {
                             // Handle Messages 
                             messagePassOnHandler(Message.InterpretString(nextMessage));
                             nextMessage = string.Empty;
                         }
+                        sr.DiscardBufferedData();
                     }
                     if (userMessages.Count > 0)
                     {
@@ -105,7 +103,7 @@ namespace MessagingServer
             Console.WriteLine("User " + recMessage.senderID.ToString("D4") + " sent: "
                 + Environment.NewLine + recMessage.Code.ToString() + " "
                 + recMessage.MessageString + Environment.NewLine + "To: "
-                + recMessage.receiverID);
+                + recMessage.receiverID.ToString("D4"));
             //SqlConnection connection = new SqlConnection(Handler.GlobalConnectionString);
             //connection.Open();
             //SqlCommand insert = new SqlCommand(@"");
@@ -114,16 +112,19 @@ namespace MessagingServer
             switch (recMessage.Code)
             {
                 case MessageCode.C003:
-                    if (recMessage.receiverID != 0)
+                    if (recMessage.receiverID == 0)
+                        return;
+                    ConcurrentQueue<Message> MessageQueue;
+                    if (Program.USERSdictionary.TryGetValue(recMessage.receiverID, out MessageQueue))
                     {
-                        ConcurrentQueue<Message> MessageQueue;
-                        if (Program.USERSdictionary.TryGetValue(0, out MessageQueue))
-                            MessageQueue.Enqueue(recMessage);
-                        else
-                        {
-                            sendMessage(new Message(MessageCode.C005, 0, connectedUserID,
-                                recMessage.createdTimeStamp.ToString()));
-                        }
+                        MessageQueue.Enqueue(recMessage);
+                        sendMessage(new Message(MessageCode.C004, 0, connectedUserID,
+                            recMessage.createdTimeStamp.ToString()));
+                    }
+                    else
+                    {
+                        sendMessage(new Message(MessageCode.C005, 0, connectedUserID,
+                            recMessage.createdTimeStamp.ToString()));
                     }
                     break;
                 case MessageCode.C001:
@@ -154,7 +155,7 @@ namespace MessagingServer
             string response;
             if (sendMessage(new Message(MessageCode.C001, 0, 0, string.Empty)))
             {
-                if (sr.ReadNextMessageExt(out response))
+                if (sr.ReadNextMessage(out response))
                 {
                     Message recMess = Message.InterpretString(response);
                     if (recMess.Code == MessageCode.C002)
@@ -166,7 +167,7 @@ namespace MessagingServer
                 else
                 {
                     Task.Delay(500);
-                    if (sr.ReadNextMessageExt(out response))
+                    if (sr.ReadNextMessage(out response))
                     {
                         Message recMess = Message.InterpretString(response);
                         if (recMess.Code == MessageCode.C002)

@@ -12,7 +12,8 @@ namespace MessagingServer
         C002 = 2,
         C003 = 3,
         C004 = 4,
-        C005 = 5
+        C005 = 5,
+        C006 = 6
     }
     public class Message
     {

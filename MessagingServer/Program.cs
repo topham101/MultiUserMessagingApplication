@@ -22,6 +22,7 @@ namespace MessagingServer
     // attempt fix of protocol code file
     // signup user ability
     // Tell users if their message has been sent successfully
+    // Error handling
 
     class Program
     {
@@ -30,7 +31,7 @@ namespace MessagingServer
 
         static void Main(string[] args)
         {
-            if (!MessageCodes.PopulateDictionary())
+            if (!MessageCodes.PopulateDictionary()) // IS THIS OBSOLETE?
             {
                 Console.WriteLine("ProtocolCodes.txt is INVALID.");
                 Console.WriteLine("Please fix and start again.");

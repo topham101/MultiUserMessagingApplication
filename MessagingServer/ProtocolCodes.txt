@@ -3,3 +3,4 @@
 003> Message for another user;
 004> Message pass-on successful;
 005> Message pass-on failed;
+006> Polling Start Notification;
