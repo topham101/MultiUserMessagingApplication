@@ -33,6 +33,7 @@ namespace MessagingClient
         public MainWindow()
         {
             InitializeComponent();
+            
         }
 
         private void PollStreamForNew()

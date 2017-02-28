@@ -1,0 +1,1 @@
+﻿The MicroMVVM classes were sourced from the following tutorial: https://www.codeproject.com/articles/165368/wpf-mvvm-quick-start-tutorial by Barry Lapthorn, 10 Oct 2012 
