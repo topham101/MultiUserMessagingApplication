@@ -7,5 +7,6 @@
         mc:Ignorable="d" Title="MainWindow" Height="600" Width="800">
     <Frame Source="Views/LoginPage.xaml" NavigationUIVisibility="Hidden"
            Height="{Binding ActualHeight, ElementName=window, Mode=OneWay}"
-           Width="{Binding ActualWidth, ElementName=window, Mode=OneWay}"/>
+           Width="{Binding ActualWidth, ElementName=window, Mode=OneWay}"
+           Background="White"/>
 </Window>

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MessagingClientMVVM.Views
+namespace MessagingClientMVVM
 {
     /// <summary>
     /// Interaction logic for MessagingPage.xaml
@@ -23,6 +23,11 @@ namespace MessagingClientMVVM.Views
         public MessagingPage()
         {
             InitializeComponent();
+        }
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            //MessageTextBox.Clear();
         }
     }
 }

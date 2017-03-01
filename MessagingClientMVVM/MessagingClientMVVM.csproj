@@ -55,9 +55,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="MicroMVVM\OservableObject.cs" />
+    <Compile Include="MicroMVVM\ObservableObject.cs" />
     <Compile Include="MicroMVVM\PropertySupport.cs" />
     <Compile Include="MicroMVVM\RelayCommand.cs" />
+    <Compile Include="Models\User.cs" />
+    <Compile Include="ViewModels\MessageCollectionViewModel.cs" />
+    <Compile Include="ViewModels\MessagingViewModel.cs" />
     <Compile Include="Views\LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
@@ -112,11 +115,15 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ViewModel\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="MicroMVVM\MicroMVVM Source.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MessagingServer\MessagingServer.csproj">
+      <Project>{f31afc95-2abf-4aa2-bc0b-a4ae51e25eec}</Project>
+      <Name>MessagingServer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

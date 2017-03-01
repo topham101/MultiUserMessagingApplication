@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MessagingClientMVVM.Views
+namespace MessagingClientMVVM
 {
     /// <summary>
     /// Interaction logic for LoginPage.xaml
@@ -25,7 +25,7 @@ namespace MessagingClientMVVM.Views
             InitializeComponent();
         }
 
-        private void button_Click(object sender, RoutedEventArgs e)
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             NavigationService ns = NavigationService.GetNavigationService(this);
             ns.Navigate(new Uri("Views/MessagingPage.xaml", UriKind.Relative));
