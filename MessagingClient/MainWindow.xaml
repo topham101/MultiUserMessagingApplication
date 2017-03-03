@@ -6,21 +6,19 @@
         xmlns:local="clr-namespace:MessagingClient"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Page>
-        <Grid>
-            <TextBlock x:Name="OutputTextBlock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" 
-                   Text="" VerticalAlignment="Top" Height="220" Width="255" Foreground="Black"/>
-            <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Right" Margin="0,280,20,0"
-                    VerticalAlignment="Top" Width="100" Height="26" Click="ConnectButton_Click"/>
-            <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Margin="20,280,0,0"
-                    VerticalAlignment="Top" Width="100" Click="CloseButton_Click" Height="26" />
-            <Button x:Name="SendButton" Content="Send" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100"
-                    Margin="0,280,0,0" Height="26" Click="SendButton_Click"/>
-            <TextBox x:Name="MessageTextBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
-                     Text="" VerticalAlignment="Top" Width="240" Margin="0,250,0,0"/>
-            <TextBox x:Name="ReceiverTextBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
-                     Text="0" VerticalAlignment="Top" Width="100" Margin="397,250,20,0" TextAlignment="Center"
-                     VerticalContentAlignment="Center"/>
-        </Grid>
-    </Page>
+    <Grid>
+        <TextBlock x:Name="OutputTextBlock" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" 
+                Text="" VerticalAlignment="Top" Height="220" Width="255" Foreground="Black"/>
+        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Right" Margin="0,280,20,0"
+                VerticalAlignment="Top" Width="100" Height="26" Click="ConnectButton_Click"/>
+        <Button x:Name="CloseButton" Content="Close" HorizontalAlignment="Left" Margin="20,280,0,0"
+                VerticalAlignment="Top" Width="100" Click="CloseButton_Click" Height="26" />
+        <Button x:Name="SendButton" Content="Send" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100"
+                Margin="0,280,0,0" Height="26" Click="SendButton_Click"/>
+        <TextBox x:Name="MessageTextBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
+                    Text="" VerticalAlignment="Top" Width="240" Margin="0,250,0,0"/>
+        <TextBox x:Name="ReceiverTextBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
+                    Text="0" VerticalAlignment="Top" Width="100" Margin="397,250,20,0" TextAlignment="Center"
+                    VerticalContentAlignment="Center"/>
+    </Grid>
 </Window>

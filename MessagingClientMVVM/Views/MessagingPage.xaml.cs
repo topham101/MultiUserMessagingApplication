@@ -24,10 +24,5 @@ namespace MessagingClientMVVM
         {
             InitializeComponent();
         }
-
-        private void SendButton_Click(object sender, RoutedEventArgs e)
-        {
-            //MessageTextBox.Clear();
-        }
     }
 }

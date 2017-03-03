@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace MessagingServer
 {
@@ -82,6 +83,7 @@ namespace MessagingServer
                         Message latestMessage;
                         while (userMessages.TryDequeue(out latestMessage))
                         {
+                            Debugger.Log(1, "General", "Done");
                             if (!sendMessage(latestMessage))
                                 throw new Exception();
                         } 
@@ -100,10 +102,11 @@ namespace MessagingServer
 
         private void messagePassOnHandler(Message recMessage) // amend later
         {
-            Console.WriteLine("User " + recMessage.senderID.ToString("D4") + " sent: "
-                + Environment.NewLine + recMessage.Code.ToString() + " "
-                + recMessage.MessageString + Environment.NewLine + "To: "
-                + recMessage.receiverID.ToString("D4"));
+            Console.WriteLine("Sent");
+            //Console.WriteLine("User " + recMessage.senderID.ToString("D4") + " sent: "
+            //    + Environment.NewLine + recMessage.Code.ToString() + " "
+            //    + recMessage.MessageString + Environment.NewLine + "To: "
+            //    + recMessage.receiverID.ToString("D4"));
             //SqlConnection connection = new SqlConnection(Handler.GlobalConnectionString);
             //connection.Open();
             //SqlCommand insert = new SqlCommand(@"");

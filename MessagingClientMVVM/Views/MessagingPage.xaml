@@ -22,6 +22,8 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="80"/>
         </Grid.ColumnDefinitions>
+        <Label Grid.Column="2" Grid.Row="0" Content="{Binding Handler.ConnectedString}" Name="rec"
+               VerticalContentAlignment="Bottom" Margin="-10,0,0,0"/>
         <ListView Grid.Column="0" Grid.Row="1" Height="Auto" Width="Auto" x:Name="ContactsListView" 
                   ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}">
             <ListView.ItemTemplate>
@@ -45,11 +47,15 @@
             </ItemsControl.ItemTemplate>
         </ListView>
         <Button Margin="20,5,20,5" Grid.Column="0" Grid.Row="2" Height="Auto" Width="Auto" x:Name="ConnectionButton"
-                Content="Connect"/>
-        <TextBox Grid.Column="1" Grid.Row="2" Height="Auto" Width="Auto" x:Name="MessageTextBox" 
-                x:FieldModifier="public" Text="{Binding MessageInput}"/>
+                Content="Connect" Command="{Binding ConnectCommand}"/>
+        <TextBox Grid.Column="1" Grid.Row="2" Height="Auto" Width="Auto" x:Name="MessageTextBox" x:FieldModifier="public"
+                 Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 VerticalContentAlignment="Center">
+            <TextBox.InputBindings>
+                <KeyBinding Command="{Binding AddMessages}" Key="Return" />
+            </TextBox.InputBindings>
+        </TextBox>
         <Button Grid.Column="3" Grid.Row="2" Height="Auto" Width="Auto" x:Name="SendButton" Content="Send >>"
-                Command="{Binding AddMessages}" Click="SendButton_Click"/>
-
+                Command="{Binding AddMessages}" />
     </Grid>
 </Page>
