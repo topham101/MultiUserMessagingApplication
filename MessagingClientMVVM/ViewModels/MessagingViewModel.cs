@@ -109,12 +109,7 @@ namespace MessagingClientMVVM
                         {
                             // Handle Messages 
                             Message temp = Message.InterpretString(nextMessage);
-                            if (temp.Code == MessageCode.C003)
-                            {
-                                Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
-                                    _messageCollections.Add(temp);
-                                })); 
-                            }
+                            MessageHandler(temp);
                             nextMessage = string.Empty;
                         }
                     }
@@ -128,6 +123,33 @@ namespace MessagingClientMVVM
                 }
             }
         }
+
+        private void MessageHandler(Message tempMessage)
+        {
+            switch (tempMessage.Code)
+            {
+                case MessageCode.C001:
+                    break;
+                case MessageCode.C002:
+                    break;
+                case MessageCode.C003:
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        _messageCollections.Add(tempMessage, _handler.myID);
+                    }));
+                    break;
+                case MessageCode.C004:
+                    break;
+                case MessageCode.C005:
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        _messageCollections.RemoveByTimeStamp(tempMessage);
+                    }));
+                    break;
+                case MessageCode.C006:
+                    break;
+                default:
+                    throw new Exception("Invalid Message Code");
+            }
+        }
         #endregion
 
         #region Commands
@@ -135,9 +157,9 @@ namespace MessagingClientMVVM
         {
             if (_messageCollections.Collection == null || string.IsNullOrWhiteSpace(MessageInput))
                 return;
-            Message m = new Message(MessageCode.C003, 1, 2, string.Format(MessageInput));
+            Message m = new Message(MessageCode.C003, 1, _selectedUser.ID, string.Format(MessageInput));
+            _messageCollections.Add(m, _handler.myID);
             _handler.SendMessage(m);
-            _messageCollections.Add(m);
             MessageInput = "";
         }
         bool CanAddMessageExecute()

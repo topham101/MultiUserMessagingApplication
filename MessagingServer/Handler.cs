@@ -121,12 +121,12 @@ namespace MessagingServer
                     if (Program.USERSdictionary.TryGetValue(recMessage.receiverID, out MessageQueue))
                     {
                         MessageQueue.Enqueue(recMessage);
-                        sendMessage(new Message(MessageCode.C004, 0, connectedUserID,
+                        sendMessage(new Message(MessageCode.C004, recMessage.receiverID, connectedUserID,
                             recMessage.createdTimeStamp.ToString()));
                     }
                     else
                     {
-                        sendMessage(new Message(MessageCode.C005, 0, connectedUserID,
+                        sendMessage(new Message(MessageCode.C005, recMessage.receiverID, connectedUserID,
                             recMessage.createdTimeStamp.ToString()));
                     }
                     break;

@@ -45,7 +45,7 @@ namespace MessagingClientMVVM.Models
         public StreamWriter sw { get; private set; }
         #endregion
 
-        #region Public Methods
+        #region Methods
         public void Connect()
         {
             if (Client == null)
@@ -110,38 +110,6 @@ namespace MessagingClientMVVM.Models
                 sw.Close();
             if (Client != null)
                 Client.Close();
-        }
-        #endregion
-
-        #region Private Methods
-        public bool ReadFullStream(out List<string> streamData)
-        {
-            NetworkStream s = Client.GetStream();
-            
-            streamData = new List<string>();
-            try
-            {
-                string fullInput = "";
-                while (Client.Available > 0)
-                {
-                    string tempstring = sr.ReadLine();
-                    if (tempstring.StartsWith("~~") || fullInput.StartsWith("~~"))
-                    {
-                        fullInput += tempstring;
-                        if (tempstring.EndsWith("~~") && tempstring.Contains("##"))
-                        {
-                            streamData.Add(fullInput);
-                            fullInput = "";
-                            continue;
-                        }
-                        fullInput += "\r\n";
-                    }
-                }
-            }
-            catch {
-                Connected = false;
-            }
-            return true;
         }
         #endregion
     }

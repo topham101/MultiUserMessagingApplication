@@ -14,7 +14,7 @@ namespace MessagingClientMVVM.ViewModels
     class MessageCollectionViewModel : ObservableObject
     {
         #region Members
-        private ConcurrentDictionary<int, MTObservableCollection<Message>> _messageCollections = new ConcurrentDictionary<int, MTObservableCollection<Message>>();
+        ConcurrentDictionary<int, MTObservableCollection<Message>> _messageCollections = new ConcurrentDictionary<int, MTObservableCollection<Message>>();
         int? _selectedUserID;
         #endregion
 
@@ -55,6 +55,9 @@ namespace MessagingClientMVVM.ViewModels
                 return messageCollectionTemp;
             }
         }
+        #endregion
+
+        #region Methods
         public MTObservableCollection<Message> GetCollection(int clientID)
         {
             MTObservableCollection<Message> messageCollectionTemp;
@@ -67,16 +70,26 @@ namespace MessagingClientMVVM.ViewModels
             }
             return messageCollectionTemp;
         }
-
-        public void Add(Message message)
+        public void Add(Message message, int CurrentLoginID)
         {
-            GetCollection(message.senderID).Add(message);
-            if (message.senderID == _selectedUserID)
-                RaisePropertyChanged("Collection");
+            if (CurrentLoginID != message.senderID)
+            {
+                GetCollection(message.senderID).Add(message);
+                if (message.senderID == _selectedUserID)
+                    RaisePropertyChanged("Collection");
+            }
+            else
+            {
+                GetCollection(message.receiverID).Add(message);
+                if (message.receiverID == _selectedUserID)
+                    RaisePropertyChanged("Collection");
+            }
         }
-        public void RaiseCollectionPropertyChanged(int clientID)
+        public void RemoveByTimeStamp(Message message)
         {
-            if (clientID == _selectedUserID)
+            Message foundMessage = GetCollection(message.senderID).Where(Message => Message.createdTimeStamp.ToString() == message.MessageString).First();
+            GetCollection(message.senderID).Remove(foundMessage);
+            if (message.senderID == _selectedUserID)
                 RaisePropertyChanged("Collection");
         }
         #endregion
