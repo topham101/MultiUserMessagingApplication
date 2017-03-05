@@ -13,7 +13,20 @@ namespace MessagingServer
         C003 = 3,
         C004 = 4,
         C005 = 5,
-        C006 = 6
+        C006 = 6,
+        C007 = 7,
+        C008 = 8,
+        C009 = 9,
+        C010 = 10,
+        C011 = 11,
+        C012 = 12,
+        C013 = 13,
+        C014 = 14,
+        C015 = 15,
+        C016 = 16,
+        C017 = 17,
+        C018 = 18,
+        C019 = 19
     }
     public class Message
     {
@@ -58,31 +71,34 @@ namespace MessagingServer
                 receiverID.ToString("D4"), MessageString, createdTimeStamp);//FINISH
         }
 
-        public static Message InterpretString(string streamData) // Add better validation later
+        public static bool InterpretString(string streamData, out Message returnMessage)
         {
+            returnMessage = null;
+
+            // Remove new line endings and checks for null values
             while (streamData.EndsWith("\r\n"))
                 streamData = streamData.Substring(0, streamData.Length-2);
             if (string.IsNullOrEmpty(streamData))
-                throw new Exception("BAD MESSAGE RECEIVED");
-            
+                return false;
+
             // Extract Error Code
             int errorCodeNum;
             if (!int.TryParse(streamData.Substring(2, 3), out errorCodeNum))
-                throw new Exception("BAD MESSAGE RECEIVED");
+                return false;
             MessageCode code = (MessageCode)errorCodeNum;
 
             // Extract Sender ID
             int messageStart = streamData.IndexOf("\r\n") + 2;
             int mesSenderID;
             if (!int.TryParse(streamData.Substring(messageStart, 4), out mesSenderID))
-                throw new Exception("BAD MESSAGE RECEIVED");
+                return false;
 
             // Extract Receiver ID
             int receiverID;
             if (!int.TryParse(streamData.Substring(messageStart + 4, 4), out receiverID))
-                throw new Exception("BAD MESSAGE RECEIVED");
+                return false;
 
-            // Extract Message
+            // Extract Data
             messageStart += 8;
             int messageEnd = streamData.LastIndexOf("\r\n\r\n##");
             string receivedMessage = streamData.Substring(messageStart,
@@ -94,10 +110,10 @@ namespace MessagingServer
                 (streamData.Length - messageEnd) - 2);
             long FileTimeVal;
             if (!long.TryParse(FileTime, out FileTimeVal))
-                throw new Exception("BAD MESSAGE RECEIVED");
+                return false;
 
-
-            return new Message(code, mesSenderID, receiverID, receivedMessage, FileTimeVal);
+            returnMessage = new Message(code, mesSenderID, receiverID, receivedMessage, FileTimeVal);
+            return true;
         }
     }
 }

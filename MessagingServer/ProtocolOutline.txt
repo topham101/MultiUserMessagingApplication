@@ -1,16 +1,23 @@
 ﻿Protocol Outline
 
 Message Structure
-"~~[Message Code]\r\n[senderID][receiverID][Message]\r\n\r\n##[TimeStamp]~~"
+"~~[Message Code]\r\n[senderID][receiverID][Data]\r\n\r\n##[TimeStamp]~~"
 
 Notes:
-- The message code must be in 3 digit format
-- The message must not contain the string "\r\n\r\n##"
+- The Data code must be in 3 digit format
+- The Data must not contain the string "\r\n\r\n##"
 - Both "\r" and "\n" are regular expression characters representing
 	Line-Feed and Carriage-Return respectively.
 - ID's must be in four digit format
 - The ID '0000' refers to the server itself or an unknown user.
 - TimeStamps must be in Windows File Time format
+
+
+User ID List Format (applies to C008 and C010)
+"[ID];[ID];...[ID];"
+
+- Contained within [Data] String of the message
+
 
 Message Codes
 [Defined in "ProtocolCodes.txt"]

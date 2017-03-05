@@ -28,17 +28,32 @@ namespace MessagingServer
     {
         public static ConcurrentDictionary<int, ConcurrentQueue<Message>> USERSdictionary
             = new ConcurrentDictionary<int, ConcurrentQueue<Message>>();
+        /// <summary>
+        /// A Dictionary of all the Online Users and whether they are appearing online or not
+        /// 
+        /// int - The ID of the User
+        /// 
+        /// bool - True if the User is appearing Online, False if they are appearing Offline
+        /// </summary>
+        public static ConcurrentDictionary<int, bool> UsersAppearingOnlineDict
+            = new ConcurrentDictionary<int, bool>();
+        /// <summary>
+        /// A Dictionary of all the Online Users and a Queue containing any online/offline
+        /// status updates from their friends.
+        /// </summary>
+        public static ConcurrentDictionary<int, ConcurrentQueue<int>> OnlineStatusUpdates
+            = new ConcurrentDictionary<int, ConcurrentQueue<int>>();
 
         static void Main(string[] args)
         {
-            if (!MessageCodes.PopulateDictionary()) // IS THIS OBSOLETE?
-            {
-                Console.WriteLine("ProtocolCodes.txt is INVALID.");
-                Console.WriteLine("Please fix and start again.");
-                Console.ReadKey();
-                Environment.Exit(0);
-            }
-            Console.WriteLine("Protocol Codes Read");
+            //if (!MessageCodes.PopulateDictionary()) // IS THIS OBSOLETE?
+            //{
+            //    Console.WriteLine("ProtocolCodes.txt is INVALID.");
+            //    Console.WriteLine("Please fix and start again.");
+            //    Console.ReadKey();
+            //    Environment.Exit(0);
+            //}
+            //Console.WriteLine("Protocol Codes Read");
             Thread t = new Thread(() => RunServer(25566));
             t.Start();
             Console.WriteLine("Press Q at anytime to quit.");

@@ -107,9 +107,10 @@ namespace MessagingClientMVVM
                         string nextMessage;
                         while (Handler.sr.ReadNextMessage(out nextMessage))
                         {
-                            // Handle Messages 
-                            Message temp = Message.InterpretString(nextMessage);
-                            MessageHandler(temp);
+                            // Handle Messages
+                            Message nextMessageObj;
+                            if (Message.InterpretString(nextMessage, out nextMessageObj))
+                                MessageHandler(nextMessageObj);
                             nextMessage = string.Empty;
                         }
                     }

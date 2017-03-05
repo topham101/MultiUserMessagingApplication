@@ -48,8 +48,10 @@ namespace MessagingClient
                         string nextMessage;
                         while (sr.ReadNextMessage(out nextMessage))
                         {
-                            // Handle Messages 
-                            messageHandler(Message.InterpretString(nextMessage));
+                            // Handle Messages
+                            Message nextMessageObj;
+                            if (Message.InterpretString(nextMessage, out nextMessageObj))
+                                messageHandler(nextMessageObj);
                             nextMessage = string.Empty;
                         }
                     }
@@ -92,7 +94,9 @@ namespace MessagingClient
                         if (!sr.ReadNextMessage(out streamData))
                             throw new Exception("");
 
-                        Message serverMessageObj = Message.InterpretString(streamData);
+                        Message serverMessageObj;
+                        if (Message.InterpretString(streamData, out serverMessageObj))
+                            messageHandler(serverMessageObj);
                         OutputTextBlock.Text += serverMessageObj.MessageString;
 
                         if (serverMessageObj.Code == MessageCode.C001)

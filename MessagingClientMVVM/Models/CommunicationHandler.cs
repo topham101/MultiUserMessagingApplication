@@ -67,7 +67,12 @@ namespace MessagingClientMVVM.Models
                         if (!sr.ReadNextMessage(out streamData))
                             throw new Exception("No Server Response");
                         sr.DiscardBufferedData();
-                        Message serverMessageObj = Message.InterpretString(streamData);
+
+                        Message serverMessageObj;
+                        if (!Message.InterpretString(streamData, out serverMessageObj))
+                        {
+                            throw new Exception("Unintelligible Server Response.");
+                        }
                         // SendMessage(serverMessageObj);
 
                         if (serverMessageObj.Code == MessageCode.C001)
