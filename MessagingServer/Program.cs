@@ -41,8 +41,8 @@ namespace MessagingServer
         /// A Dictionary of all the Online Users and a Queue containing any online/offline
         /// status updates from their friends.
         /// </summary>
-        public static ConcurrentDictionary<int, ConcurrentQueue<int>> OnlineStatusUpdates
-            = new ConcurrentDictionary<int, ConcurrentQueue<int>>();
+        public static ConcurrentDictionary<int, ThreadSafeList<int>> OnlineStatusUpdates
+            = new ConcurrentDictionary<int, ThreadSafeList<int>>();
 
         static void Main(string[] args)
         {

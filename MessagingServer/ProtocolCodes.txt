@@ -1,16 +1,16 @@
 ﻿SC  001> Connection Test Request;
 C   002> Connection Test Confirmation;
-S   003> Message for another user;
+SP  003> Message for another user;
 S   004> Message pass-on successful;
 S   005> Message pass-on failed;
 SC  006> Received message is incomprehensible;
 SC  007> Connection Test Fail / Connection Closing;
 C   008> Get Friend status';							- Request to get the online status all friends (E.g. Sent during first Log-in or Manual Refresh).
-/C   009> New Friends Request;							- Request to send a friend reques to another user (Add new Friend). Message Data is friend request message.
-/S   010> User Response List;							- List of Online Status' of friends (Response to C008).
-/C   011> User Request Remove;							- Request to remove the specified user from the list of tracked users (Remove Friend).
-S   012> Users Response Success;						- Action was successfull. (Response to C011, C009 and C008) **NOTE** Does not deem friend request accepted. Only passed on.
-S   013> Users Response Failed;							- Action failed. (Response to C011, C009 and C008)
+CP  009> New Friends Request;							- Request to send a friend reques to another user (Add new Friend). Message Data is friend request message.
+S   010> User Response List;							- List of Online Status' of friends (Response to C008).
+C   011> User Request Remove;							- Request to remove the specified user from friend list (Remove Friend).
+S   012> Users Response Success;						- Action was successfull. (Response to C019, C018, C011, C009 and C008) **NOTE** Does not deem friend request accepted. Only passed on.
+S   013> Users Response Failed;							- Action failed. (Response to C019, C018, C011, C009 and C008)
 C   014> Request Appear Offline;
 C   015> Request Appear Online;
 S   016> Response Online Appearance Changed Success;

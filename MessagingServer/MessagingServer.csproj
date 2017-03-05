@@ -59,6 +59,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
+    <Compile Include="ThreadSafeList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

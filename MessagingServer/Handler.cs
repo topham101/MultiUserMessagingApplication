@@ -107,12 +107,13 @@ namespace MessagingServer
                         }
                         sr.DiscardBufferedData();
                     }
+                    // CHANGE to react to TYPE of message received
+                    // E.g. add new friend request to list
                     if (userMessages.Count > 0)
                     {
                         Message latestMessage;
                         while (userMessages.TryDequeue(out latestMessage))
                         {
-                            Debugger.Log(1, "General", "Done");
                             if (!sendMessage(latestMessage))
                                 throw new Exception();
                         } 
@@ -166,8 +167,7 @@ namespace MessagingServer
                         }
                     }
                     break;
-                case MessageCode.C008: //Request to get the online status all friends
-                                       // (E.g. Sent during first Log-in or Manual Refresh).
+                case MessageCode.C008: // Get Friend Status'
                     {
                         string friendsStatusList = "";
                         foreach (int item in friendList)
@@ -184,7 +184,7 @@ namespace MessagingServer
                             friendsStatusList));
                     }
                     break;
-                case MessageCode.C009: // Request to send a friend request
+                case MessageCode.C009: // New Friend Request
                     {
                         if (!friendList.Contains(recMessage.receiverID)
                             && recMessage.receiverID != 0)
@@ -213,17 +213,26 @@ namespace MessagingServer
                                     recMessage.createdTimeStamp.ToString()));
                     }
                     break;
-                case MessageCode.C011:
+                case MessageCode.C011: // Remove Friend MODIFY LATER AFTER DbS ******
                     {
-                        int newFriendID;
-                        if (int.TryParse(recMessage.MessageString, out newFriendID) &&
-                            friendList.Remove(newFriendID))
-                        {
-                            sendMessage(new Message(MessageCode.C012, 0, recMessage.senderID,
-                                    recMessage.createdTimeStamp.ToString()));
-                        }
-                        else sendMessage(new Message(MessageCode.C013, 0, recMessage.senderID,
-                            recMessage.createdTimeStamp.ToString()));
+                        //// FINISH AFTER DBS?
+                        //if (friendList.Remove(recMessage.receiverID))
+                        //{
+                        //    ThreadSafeList<int> tempTSList;
+                        //    // Doesn't account for when the other person is offline
+                        //    // Needs DBS implementation
+                        //    if (Program.OnlineStatusUpdates.TryGetValue(recMessage.receiverID,
+                        //        out tempTSList) && tempTSList.Remove(connectedUserID))
+                        //    {
+                        //        // Pass on friend remove request to other friend?
+                        //
+                        //        sendMessage(new Message(MessageCode.C012, 0, recMessage.senderID,
+                        //            recMessage.createdTimeStamp.ToString()));
+                        //        return;
+                        //    }
+                        //}
+                        //sendMessage(new Message(MessageCode.C013, 0, recMessage.senderID,
+                        //    recMessage.createdTimeStamp.ToString()));
                     }
                     break;
                 case MessageCode.C014:
@@ -250,14 +259,40 @@ namespace MessagingServer
                     }
                     sendMessage(new Message(MessageCode.C016, 0, recMessage.senderID, ""));
                     break;
-                case MessageCode.C018:
-                    if (friendRequests.Contains(recMessage.receiverID))
+                case MessageCode.C018: // Friend Request Accepted
+                    if (friendRequests.Contains(recMessage.receiverID)) // If request exists
                     {
-                        friendRequests.Remove(recMessage.receiverID);
-
+                        friendRequests.Remove(recMessage.receiverID); // Remove request
+                        ConcurrentQueue<Message> MessageQueue;
+                        if (Program.USERSdictionary.TryGetValue(recMessage.receiverID,
+                            out MessageQueue))
+                        {
+                            Console.WriteLine("{0} C018 sent to {1}.",
+                                recMessage.senderID.ToString("D4"),
+                                recMessage.receiverID.ToString("D4"));
+                            MessageQueue.Enqueue(recMessage);
+                            sendMessage(new Message(MessageCode.C012, recMessage.receiverID,
+                                connectedUserID, recMessage.createdTimeStamp.ToString()));
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0} C018 *NOT* sent to {1}.",
+                                recMessage.senderID.ToString("D4"),
+                                recMessage.receiverID.ToString("D4"));
+                            sendMessage(new Message(MessageCode.C013, recMessage.receiverID,
+                                connectedUserID, recMessage.createdTimeStamp.ToString()));
+                        }
+                    }
+                    else
+                    {
+                        sendMessage(new Message(MessageCode.C013, 0, recMessage.senderID,
+                                    recMessage.createdTimeStamp.ToString()));
                     }
                     break;
                 case MessageCode.C019:
+                    {
+
+                    }
                     break;
                 case MessageCode.C007: // Maybe Change Later?
                     throw new Exception("Connection Failure");
