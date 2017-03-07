@@ -24,7 +24,6 @@ namespace MessagingServer
         private StreamWriter sw;
 
         private int connectedUserID = 0;
-        private ConcurrentQueue<Message> userMessages;
         private bool _appearingOnline;
         private bool AppearingOnline
         {
@@ -45,12 +44,29 @@ namespace MessagingServer
                     {
                         throw new Exception("Error Changing Online Appearance");
                     } 
+                    updateFriendsOfNewStatus();
                     _appearingOnline = value;
                 }
             }
         }
+        private ConcurrentQueue<Message> userMessages;
         private List<int> friendList = new List<int>();
         private List<int> friendRequests = new List<int>();
+        private bool IsFriendUpdateExist
+        {
+            get
+            {
+                bool outVal;
+                if (Program.OnlineStatusUpdates.TryGetValue(connectedUserID, out outVal))
+                    return outVal;
+                else throw new Exception("Online Status Update Fail");
+            }
+            set
+            {
+                if (!Program.OnlineStatusUpdates.TryUpdate(connectedUserID, value, !value))
+                    throw new Exception("Online Status Update Fail");
+            }
+        }
 
         public void beginHandle(Socket connection)
         {
@@ -59,33 +75,58 @@ namespace MessagingServer
             sw = new StreamWriter(socketStream);
             string ip = connection.RemoteEndPoint.ToString();
 
-            // Test client for response
-            if (connectionWorking())
+            try
             {
-                Console.WriteLine("Connection Working: " + ip + " USER: "
-                    + connectedUserID.ToString("D4"));
-                // Create or Find messages queue
-                if (!Program.USERSdictionary.TryGetValue(connectedUserID, out userMessages))
+                // Test client for response
+                if (connectionWorking())
                 {
-                    userMessages = new ConcurrentQueue<Message>();
-                    if (Program.USERSdictionary.TryAdd(connectedUserID, userMessages))
-                        Console.WriteLine("Dictionary element added successfully (ID: "+ connectedUserID.ToString("D4") + ")");
+                    Console.WriteLine("Connection Working: " + ip + " USER: "
+                        + connectedUserID.ToString("D4"));
+                    // Create or Find messages queue
+                    if (!Program.PassOnMessageDictionary.TryGetValue(connectedUserID, out userMessages))
+                    {
+                        userMessages = new ConcurrentQueue<Message>();
+                        if (Program.PassOnMessageDictionary.TryAdd(connectedUserID, userMessages))
+                            Console.WriteLine("Dictionary element added successfully (ID: "
+                                + connectedUserID.ToString("D4") + ")");
+                    }
+                    // Create new friend update entry for the Connected User
+                    if (!Program.OnlineStatusUpdates.TryAdd(connectedUserID, false))
+                        throw new Exception("Online Status Update List Add ~ Failed");
+
+                    // Add online status to dictionary
+                    AppearingOnline = true;
+
+                    // start socket poll
+                    socketPoll(connection);
                 }
-                // Add online status to dictionary
-                AppearingOnline = true;
-
-                // start socket poll
-                socketPoll(connection);
             }
-            // Close Thread
-            Program.USERSdictionary.TryRemove(connectedUserID, out userMessages);
-            Console.WriteLine(connectedUserID.ToString("D4") + " Dictionary Removed.");
+            catch (Exception exc)
+            {
+                Console.WriteLine("Handle Failure: " + exc.Message);
+            }
+            finally
+            {
+                // Cleanup
+                AppearingOnline = false;
+                bool tempBool;
+                if (Program.OnlineStatusUpdates.TryRemove(connectedUserID, out tempBool))
+                    Console.WriteLine(connectedUserID.ToString("D4")
+                        + " Status Update Dictionary Removed.");
+                if (Program.UsersAppearingOnlineDict.TryRemove(connectedUserID, out tempBool))
+                    Console.WriteLine(connectedUserID.ToString("D4")
+                        + " User Online Status Dictionary Removed.");
+                if (Program.PassOnMessageDictionary.TryRemove(connectedUserID, out userMessages))
+                    Console.WriteLine(connectedUserID.ToString("D4")
+                        + " Pass On Message Dictionary Removed.");
 
-            sw.Close();
-            sr.Close();
-            socketStream.Close();
-            connection.Close();
-            Console.WriteLine("Connection Closed: " + ip);
+                // Close Thread
+                sw.Close();
+                sr.Close();
+                socketStream.Close();
+                connection.Close();
+                Console.WriteLine("Connection Closed: " + ip);
+            }
         }
 
         private void socketPoll(Socket connection)
@@ -94,6 +135,7 @@ namespace MessagingServer
             {
                 try
                 {
+                    // Read Messages
                     while (connection.Available > 0)
                     {
                         string nextMessage;
@@ -107,30 +149,74 @@ namespace MessagingServer
                         }
                         sr.DiscardBufferedData();
                     }
-                    // CHANGE to react to TYPE of message received
-                    // E.g. add new friend request to list
-                    if (userMessages.Count > 0)
+
+                    // Read Passed-On Messages
+                    while (userMessages.Count > 0)
                     {
                         Message latestMessage;
-                        while (userMessages.TryDequeue(out latestMessage))
-                        {
-                            if (!sendMessage(latestMessage))
-                                throw new Exception();
-                        } 
+                        if (userMessages.TryDequeue(out latestMessage))
+                            messagePassOnHandler(latestMessage); 
                     }
-                    // HERE check for friends requests.
-                    // Add request to list
-                    // Check none from the same user already exist
+
+                    // Send New Friend Online/Offline Updates
+                    if (IsFriendUpdateExist)
+                    {
+                        IsFriendUpdateExist = false;
+                        sendMessage(new Message(MessageCode.C010, 0, connectedUserID,
+                            GetAllFriendStatus()));
+                    }
+
                 }
                 catch (Exception exc)
                 {
-                    Console.WriteLine("POLLING ERROR" + exc.Message);
+                    Console.WriteLine("POLLING ERROR: " + exc.Message);
                     return;
                 }
                 // Wait
                 Task.Delay(PollRateMS);
             }
             return;
+        }
+
+        private void messagePassOnHandler(Message recMessage)
+        {
+            switch (recMessage.Code)
+            {
+                case MessageCode.C003:
+                    sendMessage(recMessage);
+                    break;
+                case MessageCode.C009:
+                    if (!friendRequests.Contains(recMessage.senderID) && sendMessage(recMessage))
+                        friendRequests.Add(recMessage.senderID);
+                    break;
+                case MessageCode.C011: // IMPLEMENT LATER
+                    break;
+                case MessageCode.C018:
+                    if (sendMessage(recMessage))
+                        friendList.Add(recMessage.senderID);
+                    sendMessage(new Message(MessageCode.C010, 0, recMessage.senderID,
+                        GetAllFriendStatus()));
+                    break;
+                default:
+                    throw new Exception("Unhandled Message Received From 'Pass-On' Service");
+            }
+            
+        }
+
+        private string GetAllFriendStatus()
+        {
+            string friendsStatusList = "";
+            foreach (int item in friendList)
+            {
+                bool IsFriendOnline;
+                if (Program.UsersAppearingOnlineDict.TryGetValue(item,
+                    out IsFriendOnline) && IsFriendOnline)
+                {
+                    friendsStatusList += item + 'T' + ';';
+                }
+                else friendsStatusList += item + 'F' + ';';
+            }
+            return friendsStatusList;
         }
 
         private void messageHandler(Message recMessage)
@@ -148,7 +234,7 @@ namespace MessagingServer
                         if (recMessage.receiverID == 0)
                             return;
                         ConcurrentQueue<Message> MessageQueue;
-                        if (Program.USERSdictionary.TryGetValue(recMessage.receiverID, out MessageQueue))
+                        if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID, out MessageQueue))
                         {
                             Console.WriteLine("{0} C003 sent to {1}.",
                                 recMessage.senderID.ToString("D4"),
@@ -168,21 +254,8 @@ namespace MessagingServer
                     }
                     break;
                 case MessageCode.C008: // Get Friend Status'
-                    {
-                        string friendsStatusList = "";
-                        foreach (int item in friendList)
-                        {
-                            bool IsFriendOnline;
-                            if (Program.UsersAppearingOnlineDict.TryGetValue(item,
-                                out IsFriendOnline) && IsFriendOnline)
-                            {
-                                friendsStatusList += item + 'T' + ';';
-                            }
-                            else friendsStatusList += item + 'F' + ';';
-                        }
-                        sendMessage(new Message(MessageCode.C010, 0, recMessage.senderID,
-                            friendsStatusList));
-                    }
+                    sendMessage(new Message(MessageCode.C010, 0, recMessage.senderID,
+                        GetAllFriendStatus()));
                     break;
                 case MessageCode.C009: // New Friend Request
                     {
@@ -190,7 +263,7 @@ namespace MessagingServer
                             && recMessage.receiverID != 0)
                         {
                             ConcurrentQueue<Message> MessageQueue;
-                            if (Program.USERSdictionary.TryGetValue(recMessage.receiverID,
+                            if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID,
                                 out MessageQueue))
                             {
                                 MessageQueue.Enqueue(recMessage);
@@ -264,21 +337,16 @@ namespace MessagingServer
                     {
                         friendRequests.Remove(recMessage.receiverID); // Remove request
                         ConcurrentQueue<Message> MessageQueue;
-                        if (Program.USERSdictionary.TryGetValue(recMessage.receiverID,
-                            out MessageQueue))
-                        {
-                            Console.WriteLine("{0} C018 sent to {1}.",
-                                recMessage.senderID.ToString("D4"),
-                                recMessage.receiverID.ToString("D4"));
+                        if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID, out MessageQueue)) // If the other user is online
+                        { 
+                            Console.WriteLine("{0} C018 sent to {1}.", recMessage.senderID.ToString("D4"),recMessage.receiverID.ToString("D4"));
                             MessageQueue.Enqueue(recMessage);
                             sendMessage(new Message(MessageCode.C012, recMessage.receiverID,
                                 connectedUserID, recMessage.createdTimeStamp.ToString()));
                         }
-                        else
+                        else // If the other user is offline
                         {
-                            Console.WriteLine("{0} C018 *NOT* sent to {1}.",
-                                recMessage.senderID.ToString("D4"),
-                                recMessage.receiverID.ToString("D4"));
+                            Console.WriteLine("{0} C018 *NOT* sent to {1}.", recMessage.senderID.ToString("D4"), recMessage.receiverID.ToString("D4"));
                             sendMessage(new Message(MessageCode.C013, recMessage.receiverID,
                                 connectedUserID, recMessage.createdTimeStamp.ToString()));
                         }
@@ -290,8 +358,14 @@ namespace MessagingServer
                     }
                     break;
                 case MessageCode.C019:
+                    if (friendRequests.Contains(recMessage.receiverID)) // If request exists
                     {
-
+                        friendRequests.Remove(recMessage.receiverID); // Remove request
+                    }
+                    else
+                    {
+                        sendMessage(new Message(MessageCode.C013, 0, recMessage.senderID,
+                                    recMessage.createdTimeStamp.ToString()));
                     }
                     break;
                 case MessageCode.C007: // Maybe Change Later?
@@ -303,20 +377,13 @@ namespace MessagingServer
             }
         }
 
-        private bool ParseUserList(string message, out List<int> userList)
+        private void updateFriendsOfNewStatus()
         {
-            try
+            foreach (int friendID in friendList)
             {
-                List<string> tempList = message.Split(';').ToList();
-                userList = tempList.Select(s => int.Parse(s)).ToList();
+                if (Program.OnlineStatusUpdates.TryUpdate(friendID, true, false)) ;
             }
-            catch
-            {
-                userList = new List<int>();
-                return false;
-            }
-            return true;
-        } // Remove Later?
+        }
 
         private bool sendMessage(Message message)
         {

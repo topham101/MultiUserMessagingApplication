@@ -22,11 +22,15 @@ namespace MessagingServer
     // attempt fix of protocol code file
     // signup user ability
     // Tell users if their message has been sent successfully
-    // Error handling
+    // Error handling and logging
 
     class Program
     {
-        public static ConcurrentDictionary<int, ConcurrentQueue<Message>> USERSdictionary
+        /// <summary>
+        /// A Dictionary containing an int Key for each User containing their ID. The Concurrent Queue
+        /// represents a queue of messages passed on from other users.
+        /// </summary>
+        public static ConcurrentDictionary<int, ConcurrentQueue<Message>> PassOnMessageDictionary
             = new ConcurrentDictionary<int, ConcurrentQueue<Message>>();
         /// <summary>
         /// A Dictionary of all the Online Users and whether they are appearing online or not
@@ -38,22 +42,17 @@ namespace MessagingServer
         public static ConcurrentDictionary<int, bool> UsersAppearingOnlineDict
             = new ConcurrentDictionary<int, bool>();
         /// <summary>
-        /// A Dictionary of all the Online Users and a Queue containing any online/offline
-        /// status updates from their friends.
+        /// A Dictionary of all the Online Users and a bool representing whether there are status
+        /// updates from friends to be checked or not.
+        /// 
+        /// True = Friend Online/Offline Status' have changed
+        /// False = No Changes
+        /// 
         /// </summary>
-        public static ConcurrentDictionary<int, ThreadSafeList<int>> OnlineStatusUpdates
-            = new ConcurrentDictionary<int, ThreadSafeList<int>>();
+        public static ConcurrentDictionary<int, bool> OnlineStatusUpdates = new ConcurrentDictionary<int, bool>();
 
         static void Main(string[] args)
         {
-            //if (!MessageCodes.PopulateDictionary()) // IS THIS OBSOLETE?
-            //{
-            //    Console.WriteLine("ProtocolCodes.txt is INVALID.");
-            //    Console.WriteLine("Please fix and start again.");
-            //    Console.ReadKey();
-            //    Environment.Exit(0);
-            //}
-            //Console.WriteLine("Protocol Codes Read");
             Thread t = new Thread(() => RunServer(25566));
             t.Start();
             Console.WriteLine("Press Q at anytime to quit.");

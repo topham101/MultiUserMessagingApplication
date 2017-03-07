@@ -45,7 +45,6 @@
   <ItemGroup>
     <Compile Include="Handler.cs" />
     <Compile Include="Message.cs" />
-    <Compile Include="MessageCodes.cs" />
     <Compile Include="MessagingServerDataSet.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -59,7 +58,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="ThreadSafeList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
