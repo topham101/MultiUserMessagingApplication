@@ -31,7 +31,7 @@ namespace MessagingServer
         /// represents a queue of messages passed on from other users.
         /// </summary>
         public static ConcurrentDictionary<int, ConcurrentQueue<Message>> PassOnMessageDictionary
-            = new ConcurrentDictionary<int, ConcurrentQueue<Message>>();
+            = new ConcurrentDictionary<int, ConcurrentQueue<Message>>(); // Add to this to pass a message
         /// <summary>
         /// A Dictionary of all the Online Users and whether they are appearing online or not
         /// 
@@ -39,7 +39,7 @@ namespace MessagingServer
         /// 
         /// bool - True if the User is appearing Online, False if they are appearing Offline
         /// </summary>
-        public static ConcurrentDictionary<int, bool> UsersAppearingOnlineDict
+        public static ConcurrentDictionary<int, bool> UsersAppearingOnlineDict // Check this to see friend status'
             = new ConcurrentDictionary<int, bool>();
         /// <summary>
         /// A Dictionary of all the Online Users and a bool representing whether there are status
@@ -50,6 +50,12 @@ namespace MessagingServer
         /// 
         /// </summary>
         public static ConcurrentDictionary<int, bool> OnlineStatusUpdates = new ConcurrentDictionary<int, bool>();
+        // Check this to see if friend status' have changed.
+        // Add to this for each of your friends if your status has changed
+        /// <summary>
+        /// List of users and their respective display names
+        /// </summary>
+        public static ConcurrentDictionary<int, string> displayNameDictionary = new ConcurrentDictionary<int, string>();
 
         static void Main(string[] args)
         {

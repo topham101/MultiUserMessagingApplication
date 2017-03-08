@@ -10,6 +10,8 @@ namespace ConsoleThreadingCallTest
     {
         static void Main(string[] args)
         {
+            string temp = "HELLOh";
+            Console.WriteLine(temp.Substring(5, temp.Length - 5));
         }
     }
 }

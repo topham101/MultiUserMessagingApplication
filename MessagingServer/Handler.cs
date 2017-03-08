@@ -52,7 +52,7 @@ namespace MessagingServer
         private ConcurrentQueue<Message> userMessages;
         private List<int> friendList = new List<int>();
         private List<int> friendRequests = new List<int>();
-        private bool IsFriendUpdateExist
+        private bool DoesFriendUpdateExist
         {
             get
             {
@@ -110,15 +110,19 @@ namespace MessagingServer
                 // Cleanup
                 AppearingOnline = false;
                 bool tempBool;
+                //string tempString;
+                //if (Program.displayNameDictionary.TryRemove(connectedUserID, out tempString))
+                //    Console.WriteLine(connectedUserID.ToString("D4")
+                //        + " Display Name Dictionary Entry Removed.");
                 if (Program.OnlineStatusUpdates.TryRemove(connectedUserID, out tempBool))
                     Console.WriteLine(connectedUserID.ToString("D4")
-                        + " Status Update Dictionary Removed.");
+                        + " Status Update Dictionary Entry Removed.");
                 if (Program.UsersAppearingOnlineDict.TryRemove(connectedUserID, out tempBool))
                     Console.WriteLine(connectedUserID.ToString("D4")
-                        + " User Online Status Dictionary Removed.");
+                        + " User Online Status Dictionary Entry Removed.");
                 if (Program.PassOnMessageDictionary.TryRemove(connectedUserID, out userMessages))
                     Console.WriteLine(connectedUserID.ToString("D4")
-                        + " Pass On Message Dictionary Removed.");
+                        + " Pass On Message Dictionary Entry Removed.");
 
                 // Close Thread
                 sw.Close();
@@ -159,9 +163,9 @@ namespace MessagingServer
                     }
 
                     // Send New Friend Online/Offline Updates
-                    if (IsFriendUpdateExist)
+                    if (DoesFriendUpdateExist)
                     {
-                        IsFriendUpdateExist = false;
+                        DoesFriendUpdateExist = false;
                         sendMessage(new Message(MessageCode.C010, 0, connectedUserID,
                             GetAllFriendStatus()));
                     }
@@ -206,15 +210,18 @@ namespace MessagingServer
         private string GetAllFriendStatus()
         {
             string friendsStatusList = "";
-            foreach (int item in friendList)
+            foreach (int friendID in friendList)
             {
                 bool IsFriendOnline;
-                if (Program.UsersAppearingOnlineDict.TryGetValue(item,
-                    out IsFriendOnline) && IsFriendOnline)
+                string displayName;
+                if (Program.displayNameDictionary.ContainsKey(friendID))
+                    displayName = Program.displayNameDictionary[friendID];
+                else displayName = "NODISPLAYNAME";
+                if (Program.UsersAppearingOnlineDict.TryGetValue(friendID,out IsFriendOnline) && IsFriendOnline)
                 {
-                    friendsStatusList += item + 'T' + ';';
+                    friendsStatusList += friendID.ToString("D4") + 'T' + displayName + ';';
                 }
-                else friendsStatusList += item + 'F' + ';';
+                else friendsStatusList += friendID.ToString("D4") + 'F' + displayName + ';';
             }
             return friendsStatusList;
         }
@@ -381,7 +388,7 @@ namespace MessagingServer
         {
             foreach (int friendID in friendList)
             {
-                if (Program.OnlineStatusUpdates.TryUpdate(friendID, true, false)) ;
+                Program.OnlineStatusUpdates.TryUpdate(friendID, true, false);
             }
         }
 
@@ -399,7 +406,7 @@ namespace MessagingServer
             return true;
         }
 
-        private bool connectionWorking() // ADD LOGIN DETAILS LATER
+        private bool connectionWorking() // ADD LOGIN DETAILS LATER?
         {
             string response;
             if (sendMessage(new Message(MessageCode.C001, 0, 0, string.Empty)) && sr.ReadNextMessage(out response))
@@ -408,10 +415,12 @@ namespace MessagingServer
                 if (Message.InterpretString(response, out recMess) && recMess.Code == MessageCode.C002)
                 {
                     connectedUserID = recMess.senderID;
-                    return true;
+                    if (string.IsNullOrWhiteSpace(recMess.MessageString) &&
+                        Program.displayNameDictionary.TryAdd(connectedUserID, recMess.MessageString))
+                        return true;
                 }
             }
-            else sendMessage(new Message(MessageCode.C007, 0, connectedUserID, ""));
+            sendMessage(new Message(MessageCode.C007, 0, connectedUserID, ""));
             return false;
         }
     }

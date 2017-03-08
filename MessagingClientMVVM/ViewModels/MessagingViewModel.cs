@@ -129,23 +129,41 @@ namespace MessagingClientMVVM
         {
             switch (tempMessage.Code)
             {
-                case MessageCode.C001:
+                case MessageCode.C002: // Implement Later
                     break;
-                case MessageCode.C002:
-                    break;
-                case MessageCode.C003:
+                case MessageCode.C003: // Message from another User
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
                         _messageCollections.Add(tempMessage, _handler.myID);
                     }));
                     break;
-                case MessageCode.C004:
+                case MessageCode.C004: // Implement Later
                     break;
-                case MessageCode.C005:
+                case MessageCode.C005: // Message sending fail
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
                         _messageCollections.RemoveByTimeStamp(tempMessage);
                     }));
                     break;
-                case MessageCode.C006:
+                case MessageCode.C006: // Implement Later
+                    break;
+                case MessageCode.C007: // Connection Closing / Connection Test Fail
+                    Handler.CloseConnection();
+                    break;
+                case MessageCode.C009:
+                    break;
+                case MessageCode.C010:
+                    Users = new ObservableCollection<User>(Handler.ParseC010Message(tempMessage.MessageString));
+                    break;
+                case MessageCode.C011:
+                    break;
+                case MessageCode.C012:
+                    break;
+                case MessageCode.C013:
+                    break;
+                case MessageCode.C016:
+                    break;
+                case MessageCode.C017:
+                    break;
+                case MessageCode.C018:
                     break;
                 default:
                     throw new Exception("Invalid Message Code");
@@ -154,8 +172,16 @@ namespace MessagingClientMVVM
         #endregion
 
         #region Commands
-        void AddMessageExecute()
+        void AddMessageExecute() // AMEND LATER
         {
+            if (!Handler.Connected) // Remove this later???????
+            {
+                Handler.DisplayName = MessageInput;
+                MessageInput = "";
+                return;
+            }
+
+
             if (_messageCollections.Collection == null || string.IsNullOrWhiteSpace(MessageInput))
                 return;
             Message m = new Message(MessageCode.C003, 1, _selectedUser.ID, string.Format(MessageInput));
@@ -163,7 +189,7 @@ namespace MessagingClientMVVM
             _handler.SendMessage(m);
             MessageInput = "";
         }
-        bool CanAddMessageExecute()
+        bool CanAddMessageExecute() // Add IsConnected return later
         {
             return true;
         }

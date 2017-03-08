@@ -10,52 +10,131 @@
     <Page.DataContext>
         <local:MessagingViewModel />
     </Page.DataContext>
-    <Grid Margin="10,10,25,38">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="10"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="80"/>
-        </Grid.ColumnDefinitions>
-        <Label Grid.Column="2" Grid.Row="0" Content="{Binding Handler.ConnectedString}" Name="rec"
-               VerticalContentAlignment="Bottom" Margin="-10,0,0,0"/>
-        <ListView Grid.Column="0" Grid.Row="1" Height="Auto" Width="Auto" x:Name="ContactsListView" 
-                  ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Label Content="{Binding ID}" />
-                        <Label Content="{Binding Name}" FontSize="10" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <ListView Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" x:Name="MessagesListView"
-                ItemsSource="{Binding MessageCollections.Collection}" BorderBrush="Gray" BorderThickness="0.5">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <Label Content="{Binding senderID}" />
-                        <Label Content="{Binding MessageString}" FontSize="10" />
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ListView>
-        <Button Margin="20,5,20,5" Grid.Column="0" Grid.Row="2" Height="Auto" Width="Auto" x:Name="ConnectionButton"
-                Content="Connect" Command="{Binding ConnectCommand}"/>
-        <TextBox Grid.Column="1" Grid.Row="2" Height="Auto" Width="Auto" x:Name="MessageTextBox" x:FieldModifier="public"
-                 Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 VerticalContentAlignment="Center">
-            <TextBox.InputBindings>
-                <KeyBinding Command="{Binding AddMessages}" Key="Return" />
-            </TextBox.InputBindings>
-        </TextBox>
-        <Button Grid.Column="3" Grid.Row="2" Height="Auto" Width="Auto" x:Name="SendButton" Content="Send >>"
-                Command="{Binding AddMessages}" />
-    </Grid>
+    <TabControl x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                SelectedIndex="1">
+        <TabItem Header="Messaging">
+            <Grid Margin="10,10,25,38">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="10"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Grid.Row="0" Content="{Binding Handler.DisplayName}" VerticalAlignment="Center" 
+                           HorizontalAlignment="Center" />
+                <Label Grid.Column="2" Grid.Row="0" Content="{Binding Handler.ConnectedString}" Name="rec"
+                           VerticalContentAlignment="Center" Margin="-10,0,0,0"/>
+                <ListView Grid.Column="0" Grid.Row="1" Height="Auto" Width="Auto" x:Name="ContactsListView" 
+                              ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{Binding ID}" />
+                                <Label Content="{Binding Name}" FontSize="10" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1" Height="Auto" Width="Auto" x:Name="MessagesListView"
+                            ItemsSource="{Binding MessageCollections.Collection}" BorderBrush="Gray" BorderThickness="0.5">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="{Binding senderID}" />
+                                <Label Content="{Binding MessageString}" FontSize="10" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ListView>
+                <Button Margin="20,5,20,5" Grid.Column="0" Grid.Row="2" Height="Auto" Width="Auto" x:Name="ConnectionButton"
+                            Content="Connect" Command="{Binding ConnectCommand}"/>
+                <TextBox Grid.Column="1" Grid.Row="2" Height="Auto" Width="Auto" x:Name="MessageTextBox" x:FieldModifier="public"
+                             Text="{Binding MessageInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalContentAlignment="Center">
+                    <TextBox.InputBindings>
+                        <KeyBinding Command="{Binding AddMessages}" Key="Return" />
+                    </TextBox.InputBindings>
+                </TextBox>
+                <Button Grid.Column="3" Grid.Row="2" Height="Auto" Width="Auto" x:Name="SendButton" Content="Send >>"
+                            Command="{Binding AddMessages}" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="Options">
+            <Grid Margin="10,10,25,38">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="35"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="340"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ListView Grid.Column="0" Grid.Row="0" Grid.RowSpan="7" Height="Auto" Width="Auto">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <DockPanel Grid.Row="7" Grid.Column="0" Width="Auto" Height="Auto"
+                           HorizontalAlignment="Center">
+                    <Button Width="60" Height="25" Content="Accept" HorizontalAlignment="Left"
+                            Margin="0,0,15,0"/>
+                    <Button Width="60" Height="25" Content="Ignore" HorizontalAlignment="Right"
+                            Margin="15,0,0,0"/>
+                </DockPanel>
+                
+                <Label Width="Auto" Height="25" Content="Add Friend" HorizontalAlignment="Left"
+                        Margin="0,0,0,0" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Bottom"/>
+                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0"
+                         Grid.Row="2" TextWrapping="NoWrap" VerticalAlignment="Top" Width="120"
+                         MaxLength="4" VerticalContentAlignment="Center"/>
+                <Button Width="90" Height="24" Content="Send" HorizontalAlignment="Left"
+                        Margin="0,0,0,0" Grid.Row="2"  Grid.Column="3"
+                        VerticalAlignment="Top"/>
+
+                <Label Width="Auto" Height="25" Content="Change Display Name" HorizontalAlignment="Left"
+                        Margin="0,0,0,0" Grid.Row="3"  Grid.Column="2" VerticalAlignment="Bottom"/>
+                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                         Grid.Row="4" TextWrapping="NoWrap" VerticalAlignment="Top" Width="160" 
+                         MaxLength="20" VerticalContentAlignment="Center"/>
+                <Button Width="90" Height="24" Content="Change" HorizontalAlignment="Left"
+                        Margin="0,0,0,0" Grid.Row="4"  Grid.Column="3" VerticalAlignment="Top"/>
+
+                <DockPanel Grid.Row="5" Grid.Column="2" Width="Auto" Height="Auto"
+                           HorizontalAlignment="Left">
+                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                        Grid.Row="5" VerticalAlignment="Center" Width="160" 
+                        VerticalContentAlignment="Center" Content="You are currently appearing:"/>
+                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                            Grid.Row="5" VerticalAlignment="Center" Width="160" Foreground="Red"
+                            VerticalContentAlignment="Center" Content="Offline"/>
+                </DockPanel>
+                <DockPanel Grid.Row="5" Grid.Column="3" Width="Auto" Height="Auto"
+                           HorizontalAlignment="Left">
+                    <Button Width="90" Height="24" Content="Appear Online" HorizontalAlignment="Left"
+                            Margin="0,0,15,0"/>
+                    <Button Width="90" Height="24" Content="Appear Offline" HorizontalAlignment="Right"
+                            Margin="15,0,0,0"/>
+                </DockPanel>
+                <Button Width="90" Height="24" Content="Sign Out" HorizontalAlignment="Center"
+                        Margin="0,0,0,0" Grid.Row="8"  Grid.Column="3" VerticalAlignment="Center"
+                        Foreground="Crimson" FontWeight="Bold"/>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Page>

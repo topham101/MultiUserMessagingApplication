@@ -15,10 +15,26 @@ namespace MessagingClientMVVM.Models
     public class CommunicationHandler : ObservableObject
     {
         bool _connected = false;
+        string _displayName;
 
         #region Properties
         public TcpClient Client { get; private set; }
         public int myID { get; private set; }
+        public string DisplayName // Make Private Set later??
+        {
+            get
+            {
+                return _displayName;
+            }
+            set
+            {
+                if (value.Length <= 20)
+                {
+                    _displayName = value;
+                    RaisePropertyChanged("DisplayName"); 
+                }
+            }
+        }
         public int PollRateMS { get { return 500; } }
         public bool Connected
         {
@@ -50,7 +66,10 @@ namespace MessagingClientMVVM.Models
         {
             if (Client == null)
             {
-                myID = 1; // change later
+                myID = 1; // CHANGE LATER
+                if (string.IsNullOrWhiteSpace(DisplayName))
+                    DisplayName = "TestUser99";
+
                 try
                 {
                     //localMessageQueue = new ConcurrentQueue<Message>();
@@ -86,9 +105,12 @@ namespace MessagingClientMVVM.Models
                 catch
                 {
                     Connected = false;
-                    sr.Close();
-                    sw.Close();
-                    Client.Close();
+                    if (sr != null)
+                        sr.Close();
+                    if (sw != null)
+                        sw.Close();
+                    if (Client != null)
+                        Client.Close();
                 }
             }
         }
@@ -105,6 +127,27 @@ namespace MessagingClientMVVM.Models
                 return false;
             }
             return true;
+        }
+        public List<User> ParseC010Message(string inputMessage)
+        {
+            List<User> returnList = new List<User>();
+            string[] friends = inputMessage.Split(';');
+            foreach (string item in friends)
+            {
+                if (item.Length < 5)
+                    throw new Exception("Invalid Input");
+                int tempID;
+                if (!int.TryParse(item.Substring(0, 4), out tempID))
+                    throw new Exception("Invalid Input");
+                bool tempStatus;
+                if (item.ToLower()[4] == 't')
+                    tempStatus = true;
+                else if (item.ToLower()[4] == 'f')
+                    tempStatus = false;
+                else throw new Exception("Invalid Input");
+                returnList.Add(new User(tempID, item.Substring(5, item.Length - 5), tempStatus));
+            }
+            return returnList;
         }
         public void CloseConnection()
         {

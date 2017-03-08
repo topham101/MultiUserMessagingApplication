@@ -6,14 +6,22 @@ using System.Threading.Tasks;
 
 namespace MessagingClientMVVM.Models
 {
-    class User
+    public class User
     {
         public User(int _ID, string _name)
         {
             ID = _ID;
             Name = _name;
+            IsOnline = false;
+        }
+        public User(int _ID, string _name, bool _isOnline)
+        {
+            ID = _ID;
+            Name = _name;
+            IsOnline = _isOnline;
         }
         public int ID { get; set; }
         public string Name { get; set; }
+        public bool IsOnline { get; set; }
     }
 }
