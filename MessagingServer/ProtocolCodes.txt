@@ -8,7 +8,7 @@ S   005> Message pass-on failed;
 SC  006> Received message is incomprehensible;
 SC  007> Connection Test Fail / Connection Closing;
 C   008> Get Friend status';							- Request to get the online status all friends (E.g. Sent during first Log-in or Manual Refresh).
-CP  009> New Friends Request;							- Request to send a friend request to another user (Add new Friend). Message Data is friend request message.
+CP  009> New Friends Request;							- Request to send a friend request to another user (Add new Friend). Message Data is sender's display name.
 S   010> User Response List;							- List of Online Status' of friends (Response to C008).
 CP  011> User Request Remove;							- Request to remove the specified user from friend list (Remove Friend).
 S   012> Users Response Success;						- Action was successfull. (Response to C019, C018, C011, C009 and C008) **NOTE** Does not deem friend request accepted. Only passed on.
@@ -18,4 +18,5 @@ C   015> Request Appear Online;
 S   016> Response Online Appearance Changed Success;
 S   017> Response Online Appearance Changed Failed;
 CP  018> Friend Request Accepted
-C   019> Friend Request Declined
+C   019> Friend Request Ignored
+S   020> Friend Request Received By Server				- Message Data is the Display Name of the user the request is sent to.

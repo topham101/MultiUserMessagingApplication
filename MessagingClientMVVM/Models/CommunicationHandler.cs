@@ -19,7 +19,7 @@ namespace MessagingClientMVVM.Models
 
         #region Properties
         public TcpClient Client { get; private set; }
-        public int myID { get; private set; }
+        public int myID { get; set; } // make private set later
         public string DisplayName // Make Private Set later??
         {
             get
@@ -28,7 +28,7 @@ namespace MessagingClientMVVM.Models
             }
             set
             {
-                if (value.Length <= 20)
+                if (!string.IsNullOrWhiteSpace(value) && value.Length <= 20)
                 {
                     _displayName = value;
                     RaisePropertyChanged("DisplayName"); 
@@ -66,7 +66,6 @@ namespace MessagingClientMVVM.Models
         {
             if (Client == null)
             {
-                myID = 1; // CHANGE LATER
                 if (string.IsNullOrWhiteSpace(DisplayName))
                     DisplayName = "TestUser99";
 
@@ -95,7 +94,7 @@ namespace MessagingClientMVVM.Models
                         // SendMessage(serverMessageObj);
 
                         if (serverMessageObj.Code == MessageCode.C001)
-                            SendMessage(new Message(MessageCode.C002, myID, 0, string.Empty));
+                            SendMessage(new Message(MessageCode.C002, myID, 0, DisplayName));
                         else throw new Exception("No Connection Test Received");
 
                         Connected = true;

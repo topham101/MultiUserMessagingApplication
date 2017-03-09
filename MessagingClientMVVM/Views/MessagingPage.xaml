@@ -11,7 +11,7 @@
         <local:MessagingViewModel />
     </Page.DataContext>
     <TabControl x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                SelectedIndex="1">
+                SelectedIndex="0">
         <TabItem Header="Messaging">
             <Grid Margin="10,10,25,38">
                 <Grid.RowDefinitions>
@@ -34,7 +34,7 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Label Content="{Binding ID}" />
+                                <Label Content="{Binding IDstr}" />
                                 <Label Content="{Binding Name}" FontSize="10" />
                             </StackPanel>
                         </DataTemplate>
@@ -77,15 +77,23 @@
                     <RowDefinition Height="35"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="240"/>
                     <ColumnDefinition Width="20"/>
-                    <ColumnDefinition Width="340"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="220"/>
                 </Grid.ColumnDefinitions>
-                <ListView Grid.Column="0" Grid.Row="0" Grid.RowSpan="7" Height="Auto" Width="Auto">
+                <Label Width="Auto" Height="26" Content="Friend Requests" HorizontalAlignment="Center"
+                        Margin="0,0,0,0" Grid.Row="0"  Grid.Column="0" VerticalAlignment="Center"
+                        FontWeight="Bold"/>
+                <ListView Grid.Column="0" Grid.Row="1" Grid.RowSpan="6" Height="Auto" Width="Auto"
+                        ItemsSource="{Binding FriendRequestCollection}"
+                        SelectedItem="{Binding SelectedFriendRequest}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
+                                <Label Content="{Binding ID}" />
+                                <Label Content="{Binding DisplayName}" />
+                                <Label Content="{Binding IsSentStr}" />
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -93,42 +101,47 @@
                 <DockPanel Grid.Row="7" Grid.Column="0" Width="Auto" Height="Auto"
                            HorizontalAlignment="Center">
                     <Button Width="60" Height="25" Content="Accept" HorizontalAlignment="Left"
-                            Margin="0,0,15,0"/>
-                    <Button Width="60" Height="25" Content="Ignore" HorizontalAlignment="Right"
-                            Margin="15,0,0,0"/>
+                            Margin="0,0,15,0" Command="{Binding AcceptRequestCommand}"/>
+                    <Button Width="60" Height="25" Content="Ignore"
+                            HorizontalAlignment="Right" Margin="15,0,0,0"
+                            Command="{Binding IgnoreRequestCommand}"/>
                 </DockPanel>
                 
-                <Label Width="Auto" Height="25" Content="Add Friend" HorizontalAlignment="Left"
+                <Label Width="Auto" Height="26" Content="Add Friend" HorizontalAlignment="Left"
                         Margin="0,0,0,0" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Bottom"/>
-                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0"
+                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0"
                          Grid.Row="2" TextWrapping="NoWrap" VerticalAlignment="Top" Width="120"
-                         MaxLength="4" VerticalContentAlignment="Center"/>
-                <Button Width="90" Height="24" Content="Send" HorizontalAlignment="Left"
-                        Margin="0,0,0,0" Grid.Row="2"  Grid.Column="3"
-                        VerticalAlignment="Top"/>
+                         MaxLength="4" VerticalContentAlignment="Center"
+                         Text="{Binding FriendRequestID, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalContentAlignment="Center"/>
+                <Button Width="90" Height="26" Content="Send" HorizontalAlignment="Left"
+                        Margin="0,0,0,0" Grid.Row="2"  Grid.Column="3" VerticalAlignment="Top"
+                        Command="{Binding SendFriendRequestCommand}"/>
 
-                <Label Width="Auto" Height="25" Content="Change Display Name" HorizontalAlignment="Left"
+                <Label Width="Auto" Height="26" Content="Change Display Name" HorizontalAlignment="Left"
                         Margin="0,0,0,0" Grid.Row="3"  Grid.Column="2" VerticalAlignment="Bottom"/>
-                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
                          Grid.Row="4" TextWrapping="NoWrap" VerticalAlignment="Top" Width="160" 
-                         MaxLength="20" VerticalContentAlignment="Center"/>
-                <Button Width="90" Height="24" Content="Change" HorizontalAlignment="Left"
-                        Margin="0,0,0,0" Grid.Row="4"  Grid.Column="3" VerticalAlignment="Top"/>
+                         MaxLength="20" VerticalContentAlignment="Center"
+                         Text="{Binding NewDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Width="90" Height="26" Content="Change" HorizontalAlignment="Left"
+                        Grid.Row="4"  Grid.Column="3"  Command="{Binding ChangeDisplayNameCommand}"
+                        VerticalAlignment="Top"/>
 
                 <DockPanel Grid.Row="5" Grid.Column="2" Width="Auto" Height="Auto"
                            HorizontalAlignment="Left">
-                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
                         Grid.Row="5" VerticalAlignment="Center" Width="160" 
                         VerticalContentAlignment="Center" Content="You are currently appearing:"/>
-                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="24" Margin="0,0,0,0" 
+                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
                             Grid.Row="5" VerticalAlignment="Center" Width="160" Foreground="Red"
                             VerticalContentAlignment="Center" Content="Offline"/>
                 </DockPanel>
                 <DockPanel Grid.Row="5" Grid.Column="3" Width="Auto" Height="Auto"
                            HorizontalAlignment="Left">
-                    <Button Width="90" Height="24" Content="Appear Online" HorizontalAlignment="Left"
+                    <Button Width="90" Height="26" Content="Appear Online" HorizontalAlignment="Left"
                             Margin="0,0,15,0"/>
-                    <Button Width="90" Height="24" Content="Appear Offline" HorizontalAlignment="Right"
+                    <Button Width="90" Height="26" Content="Appear Offline" HorizontalAlignment="Right"
                             Margin="15,0,0,0"/>
                 </DockPanel>
                 <Button Width="90" Height="24" Content="Sign Out" HorizontalAlignment="Center"

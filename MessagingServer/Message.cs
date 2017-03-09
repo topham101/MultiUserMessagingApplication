@@ -26,7 +26,8 @@ namespace MessagingServer
         C016 = 16,
         C017 = 17,
         C018 = 18,
-        C019 = 19
+        C019 = 19,
+        C020 = 20
     }
     public class Message
     {

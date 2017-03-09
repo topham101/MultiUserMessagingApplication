@@ -10,8 +10,15 @@ namespace ConsoleThreadingCallTest
     {
         static void Main(string[] args)
         {
-            string temp = "HELLOh";
-            Console.WriteLine(temp.Substring(5, temp.Length - 5));
+            Dictionary<int, string> dict = new Dictionary<int, string>();
+
+            Console.WriteLine(dict);
+            dict[0] = "zero";
+            Console.WriteLine(dict[0]);
+            dict[0] = "zeroChanged";
+            Console.WriteLine(dict[0]);
+
+            Console.ReadKey();
         }
     }
 }

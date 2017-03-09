@@ -24,6 +24,8 @@ namespace MessagingServer
     // Tell users if their message has been sent successfully
     // Error handling and logging
 
+    // CHANGE C019 TO DELETE FRIEND REQUEST not delcline them. Or add a new command for this?
+
     class Program
     {
         /// <summary>

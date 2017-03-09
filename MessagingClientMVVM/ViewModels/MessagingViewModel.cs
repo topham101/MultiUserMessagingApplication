@@ -21,24 +21,42 @@ namespace MessagingClientMVVM
     class MessagingViewModel : ObservableObject
     {
         #region Members
-        ObservableCollection<User> _users = new ObservableCollection<User>();
-        MessageCollectionViewModel _messageCollections = new MessageCollectionViewModel();
-        CommunicationHandler _handler = new CommunicationHandler();
-        User _selectedUser;
-        string _messageInput;
+        private MTObservableCollection<FriendRequest> _friendRequestCollection = new MTObservableCollection<FriendRequest>();
+        private ObservableCollection<User> _users = new ObservableCollection<User>();
+        private MessageCollectionViewModel _messageCollections = new MessageCollectionViewModel();
+        private CommunicationHandler _handler = new CommunicationHandler();
+        private User _selectedUser;
+        private FriendRequest _selectedFriendRequest;
+        private string _messageInput;
+        private string _newDisplayName;
+        private int? _friendRequestID;
         #endregion
 
         #region Constructors
         public MessagingViewModel()
         {
-            _users.Add(new User(0, "Server"));
-            _users.Add(new User(1, "Test User"));
-            _users.Add(new User(2, "Test User 2"));
-            _users.Add(new User(3, "Test User 3"));
+            //_users.Add(new User(0, "Server"));
+            //_users.Add(new User(1, "E1eet101"));
+            //_users.Add(new User(2, "alphAD0nkeyK0ng"));
+            //_users.Add(new User(3, "Topham101"));
+            //_friendRequestCollection.Add(new FriendRequest(1, 2, "Swcharzzneggerr", true));
+            //_friendRequestCollection.Add(new FriendRequest(3, 1, "TooTrumpForYoo", false));
         }
         #endregion
 
         #region Properties
+        public MTObservableCollection<FriendRequest> FriendRequestCollection
+        {
+            get
+            {
+                return _friendRequestCollection;
+            }
+            set
+            {
+                _friendRequestCollection = value;
+                RaisePropertyChanged("FriendRequestCollection");
+            }
+        }
         public MessageCollectionViewModel MessageCollections
         {
             get
@@ -93,6 +111,64 @@ namespace MessagingClientMVVM
                 MessageInput = "";
             }
         }
+        public FriendRequest SelectedFriendRequest
+        {
+            get
+            {
+                return _selectedFriendRequest;
+            }
+            set
+            {
+                _selectedFriendRequest = value;
+                RaisePropertyChanged("DeleteIgnore");
+            }
+        }
+        public string NewDisplayName
+        {
+            get
+            {
+                return _newDisplayName;
+            }
+            set
+            {
+                _newDisplayName = value;
+                RaisePropertyChanged("NewDisplayName");
+            }
+        }
+        public string FriendRequestID
+        {
+            get
+            {
+                if (_friendRequestID != null)
+                {
+                    return ((int)_friendRequestID).ToString();
+                }
+                else return "";
+            }
+            set
+            {
+                int temp;
+                if (int.TryParse(value, out temp))
+                {
+                    _friendRequestID = temp;
+                    RaisePropertyChanged("FriendRequestID");
+                }
+            }
+        }
+        public string DeleteIgnore
+        {
+            get
+            {
+                if (SelectedFriendRequest != null)
+                {
+                    if (SelectedFriendRequest.IsSent)
+                        return "Delete";
+                    else return "Ignore";
+                }
+                else return "Ignore";
+            }
+        } // Not used atm
+
         #endregion
 
         #region Methods
@@ -130,6 +206,7 @@ namespace MessagingClientMVVM
             switch (tempMessage.Code)
             {
                 case MessageCode.C002: // Implement Later
+                    _handler.DisplayName = tempMessage.MessageString;
                     break;
                 case MessageCode.C003: // Message from another User
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
@@ -149,21 +226,40 @@ namespace MessagingClientMVVM
                     Handler.CloseConnection();
                     break;
                 case MessageCode.C009:
+                    FriendRequestCollection.Add(new FriendRequest(tempMessage.senderID, _handler.myID,
+                        tempMessage.MessageString, false));
                     break;
                 case MessageCode.C010:
                     Users = new ObservableCollection<User>(Handler.ParseC010Message(tempMessage.MessageString));
                     break;
-                case MessageCode.C011:
+                case MessageCode.C011: // Implement Later
                     break;
-                case MessageCode.C012:
+                case MessageCode.C012: // Implement Later
                     break;
-                case MessageCode.C013:
+                case MessageCode.C013: // Implement Later
                     break;
-                case MessageCode.C016:
+                case MessageCode.C016: // Implement Later
                     break;
-                case MessageCode.C017:
+                case MessageCode.C017: // Implement Later
                     break;
-                case MessageCode.C018:
+                case MessageCode.C018: // Test this
+                    FriendRequest tempFR = FriendRequestCollection.Single(s => s.IDnumeric == tempMessage.senderID);
+                    FriendRequestCollection.Remove(tempFR);
+                    RaisePropertyChanged("FriendRequestCollection");
+                    Users.Add(new User(tempFR.IDnumeric, tempFR.DisplayName));
+                    SelectedFriendRequest = null;
+                    break;
+                case MessageCode.C020:
+                    for (int i = 0; i < FriendRequestCollection.Count; i++)
+                    {
+                        if (FriendRequestCollection[i].IsSent &&
+                            FriendRequestCollection[i].DisplayName == "_" &&
+                            FriendRequestCollection[i].IDnumeric == tempMessage.senderID)
+                        {
+                            FriendRequestCollection[i].DisplayName = tempMessage.MessageString;
+                            break;
+                        }
+                    }
                     break;
                 default:
                     throw new Exception("Invalid Message Code");
@@ -176,7 +272,7 @@ namespace MessagingClientMVVM
         {
             if (!Handler.Connected) // Remove this later???????
             {
-                Handler.DisplayName = MessageInput;
+                Handler.myID = int.Parse(MessageInput);
                 MessageInput = "";
                 return;
             }
@@ -184,9 +280,12 @@ namespace MessagingClientMVVM
 
             if (_messageCollections.Collection == null || string.IsNullOrWhiteSpace(MessageInput))
                 return;
-            Message m = new Message(MessageCode.C003, 1, _selectedUser.ID, string.Format(MessageInput));
+            Message m = new Message(MessageCode.C003, _handler.myID, _selectedUser.ID, string.Format(MessageInput));
             _messageCollections.Add(m, _handler.myID);
-            _handler.SendMessage(m);
+            if (m.senderID != m.receiverID)
+            {
+                _handler.SendMessage(m); 
+            }
             MessageInput = "";
         }
         bool CanAddMessageExecute() // Add IsConnected return later
@@ -209,6 +308,75 @@ namespace MessagingClientMVVM
             return !Handler.Connected;
         }
         public ICommand ConnectCommand { get { return new RelayCommand(Connect, CanConnect); } }
+
+        void AcceptRequest()
+        {
+            _handler.SendMessage(new Message(MessageCode.C018, _handler.myID, SelectedFriendRequest.IDnumeric, string.Empty));
+            Users.Add(new User(SelectedFriendRequest.IDnumeric, SelectedFriendRequest.DisplayName));
+            FriendRequestCollection.Remove(SelectedFriendRequest);
+            RaisePropertyChanged("FriendRequestCollection");
+            SelectedFriendRequest = null;
+        }
+        bool CanAcceptRequest()
+        {
+            if (_handler.Connected && SelectedFriendRequest != null)
+            {
+                return !SelectedFriendRequest.IsSent;
+            }
+            else return false;
+        }
+        public ICommand AcceptRequestCommand { get { return new RelayCommand(AcceptRequest, CanAcceptRequest); } }
+
+        void IgnoreRequest()
+        {
+            if (!SelectedFriendRequest.IsSent)
+            {
+                FriendRequestCollection.Remove(SelectedFriendRequest);
+                _handler.SendMessage(new Message(MessageCode.C019, _handler.myID, SelectedFriendRequest.IDnumeric,
+                    string.Empty));
+            }
+        }
+        bool CanIgnoreRequest()
+        {
+            if (_handler.Connected && SelectedFriendRequest != null && !SelectedFriendRequest.IsSent)
+                return true;
+            else return false;
+        }
+        public ICommand IgnoreRequestCommand { get { return new RelayCommand(IgnoreRequest, CanIgnoreRequest); } }
+
+        void ChangeDisplayName()
+        {
+            if (!_handler.Connected)
+            {
+                _handler.DisplayName = NewDisplayName;
+                NewDisplayName = string.Empty;
+            }
+            else
+            {
+                _handler.SendMessage(new Message(MessageCode.C001, _handler.myID, 0, NewDisplayName));
+                NewDisplayName = string.Empty;
+            }
+        }
+        bool CanChangeDisplayName()
+        {
+            return !string.IsNullOrWhiteSpace(NewDisplayName);
+        }
+        public ICommand ChangeDisplayNameCommand { get { return new RelayCommand(ChangeDisplayName, CanChangeDisplayName); } }
+
+        void SendFriendRequest()
+        {
+            _handler.SendMessage(new Message(MessageCode.C009, _handler.myID, (int)_friendRequestID, _handler.DisplayName));
+            FriendRequestCollection.Add(new FriendRequest(_handler.myID, (int)_friendRequestID, "_", true));
+        }
+        bool CanSendFriendRequest()
+        {
+            if (_handler.Connected && _friendRequestID != null)
+            {
+                return true;
+            }
+            else return false;
+        }
+        public ICommand SendFriendRequestCommand { get { return new RelayCommand(SendFriendRequest, CanSendFriendRequest); } }
         #endregion
     }
 }

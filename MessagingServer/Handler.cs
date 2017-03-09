@@ -52,6 +52,17 @@ namespace MessagingServer
         private ConcurrentQueue<Message> userMessages;
         private List<int> friendList = new List<int>();
         private List<int> friendRequests = new List<int>();
+        private string DisplayName
+        {
+            get
+            {
+                return Program.displayNameDictionary[connectedUserID];
+            }
+            set
+            {
+                Program.displayNameDictionary[connectedUserID] = value;
+            }
+        }
         private bool DoesFriendUpdateExist
         {
             get
@@ -81,21 +92,23 @@ namespace MessagingServer
                 if (connectionWorking())
                 {
                     Console.WriteLine("Connection Working: " + ip + " USER: "
-                        + connectedUserID.ToString("D4"));
+                        + connectedUserID.ToString("D4") + " Name: " + DisplayName);
                     // Create or Find messages queue
                     if (!Program.PassOnMessageDictionary.TryGetValue(connectedUserID, out userMessages))
                     {
                         userMessages = new ConcurrentQueue<Message>();
                         if (Program.PassOnMessageDictionary.TryAdd(connectedUserID, userMessages))
-                            Console.WriteLine("Dictionary element added successfully (ID: "
+                            Console.WriteLine("Dictionary Entry Added Successfully (ID: "
                                 + connectedUserID.ToString("D4") + ")");
                     }
                     // Create new friend update entry for the Connected User
                     if (!Program.OnlineStatusUpdates.TryAdd(connectedUserID, false))
                         throw new Exception("Online Status Update List Add ~ Failed");
+                    Console.WriteLine("Online Status Dictionary Entry Added Successfully");
 
                     // Add online status to dictionary
                     AppearingOnline = true;
+                    Console.WriteLine("User: " + connectedUserID + " Appearing Online");
 
                     // start socket poll
                     socketPoll(connection);
@@ -184,6 +197,7 @@ namespace MessagingServer
 
         private void messagePassOnHandler(Message recMessage)
         {
+            Console.WriteLine(recMessage.Code + " Passed on to " + connectedUserID + ". Handled.");
             switch (recMessage.Code)
             {
                 case MessageCode.C003:
@@ -231,7 +245,9 @@ namespace MessagingServer
             switch (recMessage.Code)
             {
                 case MessageCode.C001:
-                    sendMessage(new Message(MessageCode.C002, 0, recMessage.senderID, ""));
+                    if (sendMessage(new Message(MessageCode.C002, 0, recMessage.senderID, recMessage.MessageString)))
+                        DisplayName = recMessage.MessageString;
+                    else sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, ""));
                     break;
                 case MessageCode.C002:
                     sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, ""));
@@ -266,19 +282,22 @@ namespace MessagingServer
                     break;
                 case MessageCode.C009: // New Friend Request
                     {
-                        if (!friendList.Contains(recMessage.receiverID)
-                            && recMessage.receiverID != 0)
+                        if (!friendList.Contains(recMessage.receiverID) && recMessage.receiverID != 0)
                         {
+                            string othersDisplayName;
                             ConcurrentQueue<Message> MessageQueue;
-                            if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID,
-                                out MessageQueue))
+                            if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID, out MessageQueue)
+                                && Program.displayNameDictionary.TryGetValue(recMessage.receiverID, out othersDisplayName))
                             {
+                                recMessage.MessageString = DisplayName;
                                 MessageQueue.Enqueue(recMessage);
                                 Console.WriteLine("{0} C009 sent to {1}.",
                                     recMessage.senderID.ToString("D4"),
                                     recMessage.receiverID.ToString("D4"));
                                 sendMessage(new Message(MessageCode.C012, recMessage.receiverID,
                                     connectedUserID, recMessage.createdTimeStamp.ToString()));
+                                sendMessage(new Message(MessageCode.C020, recMessage.receiverID,
+                                    connectedUserID, othersDisplayName));
                             }
                             else
                             {
@@ -346,8 +365,8 @@ namespace MessagingServer
                         ConcurrentQueue<Message> MessageQueue;
                         if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID, out MessageQueue)) // If the other user is online
                         { 
-                            Console.WriteLine("{0} C018 sent to {1}.", recMessage.senderID.ToString("D4"),recMessage.receiverID.ToString("D4"));
                             MessageQueue.Enqueue(recMessage);
+                            Console.WriteLine("{0} C018 sent to {1}.", recMessage.senderID.ToString("D4"),recMessage.receiverID.ToString("D4"));
                             sendMessage(new Message(MessageCode.C012, recMessage.receiverID,
                                 connectedUserID, recMessage.createdTimeStamp.ToString()));
                         }
@@ -415,9 +434,11 @@ namespace MessagingServer
                 if (Message.InterpretString(response, out recMess) && recMess.Code == MessageCode.C002)
                 {
                     connectedUserID = recMess.senderID;
-                    if (string.IsNullOrWhiteSpace(recMess.MessageString) &&
-                        Program.displayNameDictionary.TryAdd(connectedUserID, recMess.MessageString))
+                    if (!string.IsNullOrWhiteSpace(recMess.MessageString))
+                    {
+                        DisplayName = recMess.MessageString;
                         return true;
+                    }
                 }
             }
             sendMessage(new Message(MessageCode.C007, 0, connectedUserID, ""));
