@@ -22,7 +22,7 @@ namespace MessagingClientMVVM
     {
         #region Members
         private MTObservableCollection<FriendRequest> _friendRequestCollection = new MTObservableCollection<FriendRequest>();
-        private ObservableCollection<User> _users = new ObservableCollection<User>();
+        private MTObservableCollection<User> _users = new MTObservableCollection<User>();
         private MessageCollectionViewModel _messageCollections = new MessageCollectionViewModel();
         private CommunicationHandler _handler = new CommunicationHandler();
         private User _selectedUser;
@@ -75,7 +75,7 @@ namespace MessagingClientMVVM
                 return _handler;
             }
         }
-        public ObservableCollection<User> Users
+        public MTObservableCollection<User> Users
         {
             get
             {
@@ -167,7 +167,7 @@ namespace MessagingClientMVVM
                 }
                 else return "Ignore";
             }
-        } // Not used atm
+        } // Not used atm? or is it
 
         #endregion
 
@@ -192,9 +192,9 @@ namespace MessagingClientMVVM
                     }
                     Task.Delay(Handler.PollRateMS);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    MessageInput = "CONNECTION FAILED";
+                    MessageInput = "CONNECTION FAILED" + e.Message;
                     Handler.CloseConnection();
                     return;
                 }
@@ -206,7 +206,9 @@ namespace MessagingClientMVVM
             switch (tempMessage.Code)
             {
                 case MessageCode.C002: // Implement Later
-                    _handler.DisplayName = tempMessage.MessageString;
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        _handler.DisplayName = tempMessage.MessageString;
+                    }));
                     break;
                 case MessageCode.C003: // Message from another User
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
@@ -223,14 +225,20 @@ namespace MessagingClientMVVM
                 case MessageCode.C006: // Implement Later
                     break;
                 case MessageCode.C007: // Connection Closing / Connection Test Fail
-                    Handler.CloseConnection();
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        Handler.CloseConnection();
+                    }));
                     break;
                 case MessageCode.C009:
-                    FriendRequestCollection.Add(new FriendRequest(tempMessage.senderID, _handler.myID,
-                        tempMessage.MessageString, false));
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        FriendRequestCollection.Add(new FriendRequest(tempMessage.senderID, _handler.myID,
+                            tempMessage.MessageString, false));
+                    }));
                     break;
                 case MessageCode.C010:
-                    Users = new ObservableCollection<User>(Handler.ParseC010Message(tempMessage.MessageString));
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        Users = Handler.ParseC010Message(tempMessage.MessageString);
+                    }));
                     break;
                 case MessageCode.C011: // Implement Later
                     break;
@@ -243,23 +251,27 @@ namespace MessagingClientMVVM
                 case MessageCode.C017: // Implement Later
                     break;
                 case MessageCode.C018: // Test this
-                    FriendRequest tempFR = FriendRequestCollection.Single(s => s.IDnumeric == tempMessage.senderID);
-                    FriendRequestCollection.Remove(tempFR);
-                    RaisePropertyChanged("FriendRequestCollection");
-                    Users.Add(new User(tempFR.IDnumeric, tempFR.DisplayName));
-                    SelectedFriendRequest = null;
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        FriendRequest tempFR = FriendRequestCollection.Single(s => s.IDnumeric == tempMessage.senderID);
+                        FriendRequestCollection.Remove(tempFR);
+                        RaisePropertyChanged("FriendRequestCollection");
+                        Users.Add(new User(tempFR.IDnumeric, tempFR.DisplayName));
+                        SelectedFriendRequest = null;
+                    }));
                     break;
                 case MessageCode.C020:
+                    Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
                     for (int i = 0; i < FriendRequestCollection.Count; i++)
-                    {
-                        if (FriendRequestCollection[i].IsSent &&
-                            FriendRequestCollection[i].DisplayName == "_" &&
-                            FriendRequestCollection[i].IDnumeric == tempMessage.senderID)
                         {
-                            FriendRequestCollection[i].DisplayName = tempMessage.MessageString;
-                            break;
+                            if (FriendRequestCollection[i].IsSent &&
+                                FriendRequestCollection[i].DisplayName == "_" &&
+                                FriendRequestCollection[i].IDnumeric == tempMessage.senderID)
+                            {
+                                FriendRequestCollection[i].DisplayName = tempMessage.MessageString;
+                                break;
+                            }
                         }
-                    }
+                    }));
                     break;
                 default:
                     throw new Exception("Invalid Message Code");
@@ -278,7 +290,7 @@ namespace MessagingClientMVVM
             }
 
 
-            if (_messageCollections.Collection == null || string.IsNullOrWhiteSpace(MessageInput))
+            if (_messageCollections.Collection == null || string.IsNullOrWhiteSpace(MessageInput) || _selectedUser == null)
                 return;
             Message m = new Message(MessageCode.C003, _handler.myID, _selectedUser.ID, string.Format(MessageInput));
             _messageCollections.Add(m, _handler.myID);

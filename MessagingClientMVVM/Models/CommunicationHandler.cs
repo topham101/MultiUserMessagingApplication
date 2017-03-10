@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using MessagingClientMVVM.MicroMVVM;
+using MessagingClientMVVM.ViewModels;
 
 namespace MessagingClientMVVM.Models
 {
@@ -127,10 +128,10 @@ namespace MessagingClientMVVM.Models
             }
             return true;
         }
-        public List<User> ParseC010Message(string inputMessage)
+        public MTObservableCollection<User> ParseC010Message(string inputMessage)
         {
-            List<User> returnList = new List<User>();
-            string[] friends = inputMessage.Split(';');
+            MTObservableCollection<User> returnList = new MTObservableCollection<User>();
+            string[] friends = inputMessage.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string item in friends)
             {
                 if (item.Length < 5)

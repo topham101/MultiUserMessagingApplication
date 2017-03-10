@@ -9,7 +9,7 @@ using System.Windows.Threading;
 
 namespace MessagingClientMVVM.ViewModels
 {
-    //Originally created by from: Franck - http://stackoverflow.com/a/23108315
+    //Originally by: Franck - http://stackoverflow.com/a/23108315
     public class MTObservableCollection<T> : ObservableCollection<T>
     {
         public override event NotifyCollectionChangedEventHandler CollectionChanged;
