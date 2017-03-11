@@ -21,12 +21,12 @@ namespace MessagingClientMVVM
     class MessagingViewModel : ObservableObject
     {
         #region Members
-        private MTObservableCollection<FriendRequest> _friendRequestCollection = new MTObservableCollection<FriendRequest>();
+        private MTObservableCollection<FriendRequestViewModel> _friendRequestCollection = new MTObservableCollection<FriendRequestViewModel>();
         private MTObservableCollection<User> _users = new MTObservableCollection<User>();
         private MessageCollectionViewModel _messageCollections = new MessageCollectionViewModel();
         private CommunicationHandler _handler = new CommunicationHandler();
+        private FriendRequestViewModel _selectedFriendRequest;
         private User _selectedUser;
-        private FriendRequest _selectedFriendRequest;
         private string _messageInput;
         private string _newDisplayName;
         private int? _friendRequestID;
@@ -45,7 +45,7 @@ namespace MessagingClientMVVM
         #endregion
 
         #region Properties
-        public MTObservableCollection<FriendRequest> FriendRequestCollection
+        public MTObservableCollection<FriendRequestViewModel> FriendRequestCollection
         {
             get
             {
@@ -84,6 +84,7 @@ namespace MessagingClientMVVM
             set
             {
                 _users = value;
+                RaisePropertyChanged("Users");
             }
         }
         public string MessageInput
@@ -107,11 +108,16 @@ namespace MessagingClientMVVM
             set
             {
                 _selectedUser = value;
-                _messageCollections.SelectedUserID = _selectedUser.ID;
+                RaisePropertyChanged("SelectedUser");
+                if (value != null)
+                {
+                    _messageCollections.SelectedUserID = _selectedUser.ID;
+                    RaisePropertyChanged("Collection");
+                }
                 MessageInput = "";
             }
         }
-        public FriendRequest SelectedFriendRequest
+        public FriendRequestViewModel SelectedFriendRequest
         {
             get
             {
@@ -167,8 +173,7 @@ namespace MessagingClientMVVM
                 }
                 else return "Ignore";
             }
-        } // Not used atm? or is it
-
+        } // Not used atm? or is it... :s
         #endregion
 
         #region Methods
@@ -231,12 +236,13 @@ namespace MessagingClientMVVM
                     break;
                 case MessageCode.C009:
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
-                        FriendRequestCollection.Add(new FriendRequest(tempMessage.senderID, _handler.myID,
+                        FriendRequestCollection.Add(new FriendRequestViewModel(tempMessage.senderID, _handler.myID,
                             tempMessage.MessageString, false));
                     }));
                     break;
                 case MessageCode.C010:
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
+                        SelectedUser = null;
                         Users = Handler.ParseC010Message(tempMessage.MessageString);
                     }));
                     break;
@@ -250,9 +256,9 @@ namespace MessagingClientMVVM
                     break;
                 case MessageCode.C017: // Implement Later
                     break;
-                case MessageCode.C018: // Test this
+                case MessageCode.C018: // Friend Request Was Accepted
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
-                        FriendRequest tempFR = FriendRequestCollection.Single(s => s.IDnumeric == tempMessage.senderID);
+                        FriendRequestViewModel tempFR = FriendRequestCollection.Single(s => s.IDnumeric == tempMessage.senderID);
                         FriendRequestCollection.Remove(tempFR);
                         RaisePropertyChanged("FriendRequestCollection");
                         Users.Add(new User(tempFR.IDnumeric, tempFR.DisplayName));
@@ -378,7 +384,7 @@ namespace MessagingClientMVVM
         void SendFriendRequest()
         {
             _handler.SendMessage(new Message(MessageCode.C009, _handler.myID, (int)_friendRequestID, _handler.DisplayName));
-            FriendRequestCollection.Add(new FriendRequest(_handler.myID, (int)_friendRequestID, "_", true));
+            FriendRequestCollection.Add(new FriendRequestViewModel(_handler.myID, (int)_friendRequestID, "_", true));
         }
         bool CanSendFriendRequest()
         {

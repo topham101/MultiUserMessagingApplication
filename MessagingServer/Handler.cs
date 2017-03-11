@@ -61,21 +61,7 @@ namespace MessagingServer
             set
             {
                 Program.displayNameDictionary[connectedUserID] = value;
-            }
-        }
-        private bool DoesFriendUpdateExist
-        {
-            get
-            {
-                bool outVal;
-                if (Program.OnlineStatusUpdates.TryGetValue(connectedUserID, out outVal))
-                    return outVal;
-                else throw new Exception("Online Status Update Fail");
-            }
-            set
-            {
-                if (!Program.OnlineStatusUpdates.TryUpdate(connectedUserID, value, !value))
-                    throw new Exception("Online Status Update Fail");
+                updateFriendsOfNewStatus();
             }
         }
 
@@ -123,10 +109,6 @@ namespace MessagingServer
                 // Cleanup
                 AppearingOnline = false;
                 bool tempBool;
-                //string tempString;
-                //if (Program.displayNameDictionary.TryRemove(connectedUserID, out tempString))
-                //    Console.WriteLine(connectedUserID.ToString("D4")
-                //        + " Display Name Dictionary Entry Removed.");
                 if (Program.OnlineStatusUpdates.TryRemove(connectedUserID, out tempBool))
                     Console.WriteLine(connectedUserID.ToString("D4")
                         + " Status Update Dictionary Entry Removed.");
@@ -143,6 +125,30 @@ namespace MessagingServer
                 socketStream.Close();
                 connection.Close();
                 Console.WriteLine("Connection Closed: " + ip);
+            }
+        }
+
+        private bool DoesFriendUpdateExist
+        {
+            get
+            {
+                bool outVal;
+                if (Program.OnlineStatusUpdates.TryGetValue(connectedUserID, out outVal))
+                    return outVal;
+                else throw new Exception("Online Status Update Fail");
+            }
+            set
+            {
+                if (!Program.OnlineStatusUpdates.TryUpdate(connectedUserID, value, !value))
+                    throw new Exception("Online Status Update Fail");
+            }
+        }
+
+        private void updateFriendsOfNewStatus()
+        {
+            foreach (int friendID in friendList)
+            {
+                Program.OnlineStatusUpdates.TryUpdate(friendID, true, false);
             }
         }
 
@@ -247,7 +253,7 @@ namespace MessagingServer
                 case MessageCode.C001:
                     if (sendMessage(new Message(MessageCode.C002, 0, recMessage.senderID, recMessage.MessageString)))
                         DisplayName = recMessage.MessageString;
-                    else sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, ""));
+                    else sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, recMessage.MessageString));
                     break;
                 case MessageCode.C002:
                     sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, ""));
@@ -362,6 +368,7 @@ namespace MessagingServer
                     if (friendRequests.Contains(recMessage.receiverID)) // If request exists
                     {
                         friendRequests.Remove(recMessage.receiverID); // Remove request
+                        friendList.Add(recMessage.receiverID);
                         ConcurrentQueue<Message> MessageQueue;
                         if (Program.PassOnMessageDictionary.TryGetValue(recMessage.receiverID, out MessageQueue)) // If the other user is online
                         { 
@@ -400,14 +407,6 @@ namespace MessagingServer
                     sendMessage(new Message(MessageCode.C006, 0, recMessage.senderID,
                         recMessage.createdTimeStamp.ToString()));
                     break;
-            }
-        }
-
-        private void updateFriendsOfNewStatus()
-        {
-            foreach (int friendID in friendList)
-            {
-                Program.OnlineStatusUpdates.TryUpdate(friendID, true, false);
             }
         }
 

@@ -61,6 +61,7 @@
     <Compile Include="Models\CommunicationHandler.cs" />
     <Compile Include="Models\FriendRequest.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="ViewModels\FriendRequestViewModel.cs" />
     <Compile Include="ViewModels\MessageCollectionViewModel.cs" />
     <Compile Include="ViewModels\MessagingViewModel.cs" />
     <Compile Include="ViewModels\MTObservableCollection.cs" />
