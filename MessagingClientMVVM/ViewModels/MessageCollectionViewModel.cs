@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MessagingClientMVVM.ViewModels
 {
-    class MessageCollectionViewModel : ObservableObject
+    public class MessageCollectionViewModel : ObservableObject
     {
         #region Members
         ConcurrentDictionary<int, MTObservableCollection<Message>> _messageCollections = new ConcurrentDictionary<int, MTObservableCollection<Message>>();

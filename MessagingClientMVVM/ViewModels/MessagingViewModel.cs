@@ -18,13 +18,13 @@ using System.Windows.Threading;
 
 namespace MessagingClientMVVM
 {
-    class MessagingViewModel : ObservableObject
+    public class MessagingViewModel : ObservableObject
     {
         #region Members
         private MTObservableCollection<FriendRequestViewModel> _friendRequestCollection = new MTObservableCollection<FriendRequestViewModel>();
         private MTObservableCollection<User> _users = new MTObservableCollection<User>();
         private MessageCollectionViewModel _messageCollections = new MessageCollectionViewModel();
-        private CommunicationHandler _handler = new CommunicationHandler();
+        private CommunicationHandlerViewModel _handler = new CommunicationHandlerViewModel();
         private FriendRequestViewModel _selectedFriendRequest;
         private User _selectedUser;
         private string _messageInput;
@@ -35,12 +35,6 @@ namespace MessagingClientMVVM
         #region Constructors
         public MessagingViewModel()
         {
-            //_users.Add(new User(0, "Server"));
-            //_users.Add(new User(1, "E1eet101"));
-            //_users.Add(new User(2, "alphAD0nkeyK0ng"));
-            //_users.Add(new User(3, "Topham101"));
-            //_friendRequestCollection.Add(new FriendRequest(1, 2, "Swcharzzneggerr", true));
-            //_friendRequestCollection.Add(new FriendRequest(3, 1, "TooTrumpForYoo", false));
         }
         #endregion
 
@@ -68,7 +62,7 @@ namespace MessagingClientMVVM
                 _messageCollections = value;
             }
         }
-        public CommunicationHandler Handler
+        public CommunicationHandlerViewModel Handler
         {
             get
             {
@@ -112,7 +106,7 @@ namespace MessagingClientMVVM
                 if (value != null)
                 {
                     _messageCollections.SelectedUserID = _selectedUser.ID;
-                    RaisePropertyChanged("Collection");
+                    RaisePropertyChanged("MessageCollections");
                 }
                 MessageInput = "";
             }

@@ -122,7 +122,7 @@
                         Margin="0,0,0,0" Grid.Row="3"  Grid.Column="2" VerticalAlignment="Bottom"/>
                 <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
                          Grid.Row="4" TextWrapping="NoWrap" VerticalAlignment="Top" Width="160" 
-                         MaxLength="20" VerticalContentAlignment="Center"
+                         MaxLength="16" VerticalContentAlignment="Center"
                          Text="{Binding NewDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Width="90" Height="26" Content="Change" HorizontalAlignment="Left"
                         Grid.Row="4"  Grid.Column="3"  Command="{Binding ChangeDisplayNameCommand}"

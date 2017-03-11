@@ -10,77 +10,38 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using MessagingClientMVVM.MicroMVVM;
 using MessagingClientMVVM.ViewModels;
+using System.Security;
 
 namespace MessagingClientMVVM.Models
 {
-    public class CommunicationHandler : ObservableObject
+    public static class CommunicationHandler
     {
-        bool _connected = false;
-        string _displayName;
-
         #region Properties
-        public TcpClient Client { get; private set; }
-        public int myID { get; set; } // make private set later
-        public string DisplayName // Make Private Set later??
-        {
-            get
-            {
-                return _displayName;
-            }
-            set
-            {
-                if (!string.IsNullOrWhiteSpace(value) && value.Length <= 20)
-                {
-                    _displayName = value;
-                    RaisePropertyChanged("DisplayName"); 
-                }
-            }
-        }
-        public int PollRateMS { get { return 500; } }
-        public bool Connected
-        {
-            get
-            {
-                return _connected;
-            }
-            private set
-            {
-                _connected = value;
-                RaisePropertyChanged("ConnectedString");
-            }
-        }
-        public string ConnectedString
-        {
-            get
-            {
-                if (_connected)
-                    return "Connected";
-                else return "No Connection";
-            }
-        }
-        public StreamReader sr { get; private set; }
-        public StreamWriter sw { get; private set; }
+        private static TcpClient Client { get; set; }
+        public static int myID { get; set; } // make private set later
+        public static string DisplayName { get; set;}
+        public static int PollRateMS { get { return 500; } }
+        public static bool Connected { get; private set; }
+        public static StreamReader sr { get; private set; }
+        public static StreamWriter sw { get; private set; }
         #endregion
 
         #region Methods
-        public void Connect()
+        public static void Connect(string username, string password, bool IsNewUser) // FIX LATER
         {
             if (Client == null)
             {
-                if (string.IsNullOrWhiteSpace(DisplayName))
-                    DisplayName = "TestUser99";
-
                 try
                 {
-                    //localMessageQueue = new ConcurrentQueue<Message>();
                     Client = new TcpClient();
                     Client.Connect("localhost", 25566);
                     if (Client.Connected)
                     {
-                        //OutputTextBlock.Text = "Connected";
-
                         sr = new StreamReader(Client.GetStream());
                         sw = new StreamWriter(Client.GetStream());
+
+                        // FIX LATER Check if password contains characters that will ruin the message interpreter later on
+                        SendMessage(new Message(MessageCode.C001, 0, 0, string.Format("REGIS" + username + ":" + password)));
 
                         string streamData;
                         if (!sr.ReadNextMessage(out streamData))
@@ -89,20 +50,20 @@ namespace MessagingClientMVVM.Models
 
                         Message serverMessageObj;
                         if (!Message.InterpretString(streamData, out serverMessageObj))
-                        {
                             throw new Exception("Unintelligible Server Response.");
-                        }
-                        // SendMessage(serverMessageObj);
 
-                        if (serverMessageObj.Code == MessageCode.C001)
-                            SendMessage(new Message(MessageCode.C002, myID, 0, DisplayName));
-                        else throw new Exception("No Connection Test Received");
+                        if (serverMessageObj.Code != MessageCode.C002 && serverMessageObj.Code != MessageCode.C021)
+                            throw new Exception("No Connection Test Received");
+                        else if (serverMessageObj.Code == MessageCode.C021)
+                            throw new Exception(serverMessageObj.MessageString);
+
+                        myID = ParseC002Message(serverMessageObj.MessageString).Key;
+                        DisplayName = ParseC002Message(serverMessageObj.MessageString).Value;
 
                         Connected = true;
-
                     }
                 }
-                catch
+                catch (Exception e)
                 {
                     Connected = false;
                     if (sr != null)
@@ -111,10 +72,11 @@ namespace MessagingClientMVVM.Models
                         sw.Close();
                     if (Client != null)
                         Client.Close();
+                    throw e;
                 }
             }
         }
-        public bool SendMessage(Message message)
+        public static bool SendMessage(Message message)
         {
             try
             {
@@ -128,7 +90,12 @@ namespace MessagingClientMVVM.Models
             }
             return true;
         }
-        public MTObservableCollection<User> ParseC010Message(string inputMessage)
+        public static KeyValuePair<int, string> ParseC002Message(string inputMessage) // improve validation later
+        {
+            string[] temp = inputMessage.Split(';');
+            return new KeyValuePair<int, string>(int.Parse(temp[0]), temp[1]);
+        }
+        public static MTObservableCollection<User> ParseC010Message(string inputMessage)
         {
             MTObservableCollection<User> returnList = new MTObservableCollection<User>();
             string[] friends = inputMessage.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -149,7 +116,7 @@ namespace MessagingClientMVVM.Models
             }
             return returnList;
         }
-        public void CloseConnection()
+        public static void CloseConnection()
         {
             Connected = false;
             if (sr != null)

@@ -4,12 +4,17 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:MessagingClientMVVM"
-      mc:Ignorable="d" 
-      d:DesignHeight="600" d:DesignWidth="800"
-      Title="Login">
+      mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800"
+      xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+      Title="Login" >
+
+    <Page.DataContext>
+        <local:LoginViewModel />
+    </Page.DataContext>
+    
     <Grid Margin="10,10,25,38">
         <Grid.RowDefinitions>
-            <RowDefinition Height="180"/>
+            <RowDefinition Height="140"/>
             <RowDefinition Height="*" MinHeight="180"/>
             <RowDefinition Height="180"/>
         </Grid.RowDefinitions>
@@ -25,7 +30,9 @@
                 <RowDefinition Height="*" MinHeight="25"/>
                 <RowDefinition Height="20"/>
                 <RowDefinition Height="*" MinHeight="25"/>
-                <RowDefinition Height="80"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="40"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="100"/>
@@ -33,11 +40,24 @@
                 <ColumnDefinition Width="100"/>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="1" Grid.Row="1" Height="25" Width="Auto" Content="Username" />
-            <TextBox Grid.Column="1" Grid.Row="2" Height="25" Width="Auto" x:Name="UserNameTextBox" />
+            <TextBox Grid.Column="1" Grid.Row="2" Height="25" Width="Auto" x:Name="UserNameTextBox"
+                    Text="{Binding Username}"/>
             <Label Grid.Column="1" Grid.Row="3" Height="25" Width="Auto" Content="Password"/>
-            <PasswordBox Grid.Column="1" Grid.Row="4" Height="25" Width="Auto" x:Name="PasswordTextBox" />
+            <TextBox Grid.Column="1" Grid.Row="4" Height="25" Width="Auto" x:Name="PasswordTextBox"
+                     />
             <Button x:Name="LoginButton" Content="Login" HorizontalAlignment="Center" Height="25" Width="120"
-                VerticalAlignment="Center" Click="LoginButton_Click" Grid.Column="1" Grid.Row="5"/>
+                    VerticalAlignment="Center" Click="LoginButton_Click" Grid.Column="1" Grid.Row="5"
+                    Command="{Binding ConnectCommand}"/>
+            <Separator Grid.Row="6" Grid.Column="1" Width="Auto" Height="1"/>
+            <Button x:Name="RegisterButton" Content="Register" HorizontalAlignment="Center" Height="25"
+                    Width="120" VerticalAlignment="Center" Click="LoginButton_Click" Grid.Column="1" Grid.Row="7"/>
+
         </Grid>
+        <StackPanel Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal"
+                    Margin="0,40,0,0">
+            <Label Height="25" Width="Auto" Content="{Binding OutputString}" HorizontalAlignment="Center"
+                   VerticalAlignment="Top" Foreground="Red"/>
+        </StackPanel>
+        
     </Grid>
 </Page>

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MessagingClientMVVM.ViewModels
 {
-    class FriendRequestViewModel : ObservableObject
+    public class FriendRequestViewModel : ObservableObject
     {
         private FriendRequest _fr;
 

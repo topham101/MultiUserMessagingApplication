@@ -37,6 +37,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -61,7 +62,9 @@
     <Compile Include="Models\CommunicationHandler.cs" />
     <Compile Include="Models\FriendRequest.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="ViewModels\CommunicationHandlerViewModel.cs" />
     <Compile Include="ViewModels\FriendRequestViewModel.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MessageCollectionViewModel.cs" />
     <Compile Include="ViewModels\MessagingViewModel.cs" />
     <Compile Include="ViewModels\MTObservableCollection.cs" />

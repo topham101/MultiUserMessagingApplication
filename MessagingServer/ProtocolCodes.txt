@@ -20,3 +20,4 @@ S   017> Response Online Appearance Changed Failed;
 CP  018> Friend Request Accepted
 C   019> Friend Request Ignored
 S   020> Friend Request Received By Server				- Message Data is the Display Name of the user the request is sent to.
+S   021> Login Failed									- Output returned via Message Data
