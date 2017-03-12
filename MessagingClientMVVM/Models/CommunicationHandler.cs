@@ -40,8 +40,9 @@ namespace MessagingClientMVVM.Models
                         sr = new StreamReader(Client.GetStream());
                         sw = new StreamWriter(Client.GetStream());
 
-                        // FIX LATER Check if password contains characters that will ruin the message interpreter later on
-                        SendMessage(new Message(MessageCode.C001, 0, 0, string.Format("REGIS" + username + ":" + password)));
+                        // FIX LATER Check if password contains illegal strings/characters
+                        string messageCommand = IsNewUser ? "REGIS" : "LOGIN";
+                        SendMessage(new Message(MessageCode.C001, 0, 0, string.Format(messageCommand + username + ":" + password)));
 
                         string streamData;
                         if (!sr.ReadNextMessage(out streamData))
@@ -57,8 +58,9 @@ namespace MessagingClientMVVM.Models
                         else if (serverMessageObj.Code == MessageCode.C021)
                             throw new Exception(serverMessageObj.MessageString);
 
-                        myID = ParseC002Message(serverMessageObj.MessageString).Key;
-                        DisplayName = ParseC002Message(serverMessageObj.MessageString).Value;
+                        KeyValuePair<int, string> tempKeyVal = ParseC002Message(serverMessageObj.MessageString);
+                        myID = tempKeyVal.Key;
+                        DisplayName = tempKeyVal.Value;
 
                         Connected = true;
                     }
@@ -67,11 +69,20 @@ namespace MessagingClientMVVM.Models
                 {
                     Connected = false;
                     if (sr != null)
-                        sr.Close();
+                    {
+                        sr.Dispose();
+                        sr = null;
+                    }
                     if (sw != null)
-                        sw.Close();
+                    {
+                        sw.Dispose();
+                        sw = null;
+                    }
                     if (Client != null)
+                    {
                         Client.Close();
+                        Client = null;
+                    }
                     throw e;
                 }
             }

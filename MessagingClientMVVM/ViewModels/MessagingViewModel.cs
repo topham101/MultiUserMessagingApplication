@@ -35,6 +35,11 @@ namespace MessagingClientMVVM
         #region Constructors
         public MessagingViewModel()
         {
+            if (Handler.Connected)
+            {
+                Task t1 = new Task(() => PollStreamForNew());
+                t1.Start();
+            }
         }
         #endregion
 

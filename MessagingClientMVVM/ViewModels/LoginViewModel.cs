@@ -8,12 +8,15 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Navigation;
 
 namespace MessagingClientMVVM
 {
     public class LoginViewModel : ObservableObject
     {
         private string _outputString;
+        private string _username;
+
         public string OutputString
         {
             get
@@ -26,7 +29,6 @@ namespace MessagingClientMVVM
                 RaisePropertyChanged("OutputString");
             }
         }
-        private string _username;
         public string Username
         {
             get
@@ -40,16 +42,49 @@ namespace MessagingClientMVVM
             }
         }
         public string Password { get; set; }
+        public NavigationService ns { get; set; }
 
 
         void ConnectExecute() // AMEND LATER
         {
-            CommunicationHandler.Connect(Username, Password, false);
+            try
+            {
+                CommunicationHandler.Connect(Username, Password, false);
+                if (CommunicationHandler.Connected)
+                    ns.Navigate(new Uri("Views/MessagingPage.xaml", UriKind.Relative));
+            }
+            catch (Exception e)
+            {
+                OutputString = e.Message;
+            }
         }
         bool CanConnectExecute() // Add IsConnected return later
         {
-            return !CommunicationHandler.Connected;
+            return (!CommunicationHandler.Connected &&
+                !string.IsNullOrWhiteSpace(Password) &&
+                !string.IsNullOrWhiteSpace(Username));
         }
         public ICommand ConnectCommand { get { return new RelayCommand(ConnectExecute, CanConnectExecute); } }
+
+        void RegisterExecute() // AMEND LATER
+        {
+            try
+            {
+                CommunicationHandler.Connect(Username, Password, true);
+                if (CommunicationHandler.Connected)
+                    ns.Navigate(new Uri("Views/MessagingPage.xaml", UriKind.Relative));
+            }
+            catch (Exception e)
+            {
+                OutputString = e.Message;
+            }
+        }
+        bool CanRegisterExecute() // Add IsConnected return later
+        {
+            return (!CommunicationHandler.Connected &&
+                !string.IsNullOrWhiteSpace(Password) &&
+                !string.IsNullOrWhiteSpace(Username));
+        }
+        public ICommand RegisterCommand { get { return new RelayCommand(RegisterExecute, CanRegisterExecute); } }
     }
 }

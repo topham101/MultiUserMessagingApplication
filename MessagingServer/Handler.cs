@@ -16,8 +16,10 @@ namespace MessagingServer
 {
     public class Handler
     {
-        public static string GlobalConnectionString = 
+        public string GlobalConnectionString = 
             Properties.Settings.Default.MessagingServerConnectionString;
+
+        private SqlConnection sqlConn;
 
         private const int PollRateMS = 500;
         private StreamReader sr;
@@ -71,9 +73,12 @@ namespace MessagingServer
             sr = new StreamReader(socketStream);
             sw = new StreamWriter(socketStream);
             string ip = connection.RemoteEndPoint.ToString();
+            sqlConn = new SqlConnection(GlobalConnectionString);
 
             try
             {
+                sqlConn.Open();
+
                 // Test client for response
                 if (connectionWorking())
                 {
@@ -120,6 +125,8 @@ namespace MessagingServer
                         + " Pass On Message Dictionary Entry Removed.");
 
                 // Close Thread
+                sqlConn.Close();
+                sqlConn.Dispose();
                 sw.Close();
                 sr.Close();
                 socketStream.Close();
@@ -427,20 +434,93 @@ namespace MessagingServer
         private bool connectionWorking() // ADD LOGIN DETAILS LATER?
         {
             string response;
-            if (sendMessage(new Message(MessageCode.C001, 0, 0, string.Empty)) && sr.ReadNextMessage(out response))
+            Message recMess;
+            if (sr.ReadNextMessage(out response) &&
+                Message.InterpretString(response, out recMess) &&
+                recMess.Code == MessageCode.C001)
             {
-                Message recMess;
-                if (Message.InterpretString(response, out recMess) && recMess.Code == MessageCode.C002)
+                bool isNewUser;
+                if (recMess.MessageString.StartsWith("REGIS"))
                 {
-                    connectedUserID = recMess.senderID;
-                    if (!string.IsNullOrWhiteSpace(recMess.MessageString))
+                    isNewUser = true;
+                }
+                else if (recMess.MessageString.StartsWith("LOGIN"))
+                {
+                    isNewUser = false;
+                }
+                else
+	            {
+                    sendMessage(new Message(MessageCode.C021, 0, connectedUserID, ""));
+                    return false;
+                }
+
+                string[] detailsArray;
+                try
+                {
+                    detailsArray = recMess.MessageString.Substring
+                        (5, (recMess.MessageString.Length - 5)).Split(':');
+                }
+                catch
+                {
+                    sendMessage(new Message(MessageCode.C021, 0, connectedUserID, ""));
+                    return false; ;
+                }
+                if (detailsArray.Length == 2 &&
+                    !string.IsNullOrWhiteSpace(detailsArray[0]) &&
+                    !string.IsNullOrWhiteSpace(detailsArray[1]))
+                {
+                    if (!isNewUser)
                     {
-                        DisplayName = recMess.MessageString;
-                        return true;
+                        SqlCommand loginCommand = new SqlCommand("SELECT * FROM Users " + 
+                            "WHERE UserName=@username AND user_password=@password;",
+                            sqlConn);
+                        loginCommand.Parameters.Add(
+                            new SqlParameter("username", detailsArray[0]));
+                        loginCommand.Parameters.Add(
+                            new SqlParameter("password", detailsArray[1]));
+                        using (SqlDataReader reader = loginCommand.ExecuteReader())
+                        {
+                            // if anything to read------??
+
+                            // REPLACE with DB code
+                            string username; // Find in DBS
+                            string password;
+                            int tempid;
+                            string tempDisplayName;
+                            // REPLACE
+                            if (reader.Read())
+                            {
+                                tempid = (int)reader[0];
+                                username = (string)reader[1];
+                                tempDisplayName = (string)reader[2];
+                                password = (string)reader[3];
+
+
+                                connectedUserID = tempid;
+                                DisplayName = tempDisplayName;
+
+                                if (detailsArray[0] == username && detailsArray[1]
+                                    == password)
+                                {
+                                    sendMessage(new Message(MessageCode.C002, 0,
+                                        connectedUserID, string.Format
+                                        (tempid + ";" + tempDisplayName)));
+
+                                    // Load friends list in here
+
+                                    return true;
+                                }
+                            }
+                        }
+                        loginCommand.Dispose();
+                    }
+                    else
+                    {
+                        // register new user here
                     }
                 }
             }
-            sendMessage(new Message(MessageCode.C007, 0, connectedUserID, ""));
+            sendMessage(new Message(MessageCode.C021, 0, connectedUserID, ""));
             return false;
         }
     }

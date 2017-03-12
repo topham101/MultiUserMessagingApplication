@@ -25,10 +25,12 @@ namespace MessagingClientMVVM
             InitializeComponent();
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            NavigationService ns = NavigationService.GetNavigationService(this);
-            ns.Navigate(new Uri("Views/MessagingPage.xaml", UriKind.Relative));
+            if (DataContext != null)
+            {
+                ((LoginViewModel)DataContext).ns = NavigationService.GetNavigationService(this); 
+            }
         }
     }
 }
