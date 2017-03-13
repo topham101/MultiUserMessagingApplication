@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingServer", "MessagingServer\MessagingServer.csproj", "{F31AFC95-2ABF-4AA2-BC0B-A4AE51E25EEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingClient", "MessagingClient\MessagingClient.csproj", "{BB696FD6-0936-4274-A3C4-EBC4960EDBEB}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingClientMVVM", "MessagingClientMVVM\MessagingClientMVVM.csproj", "{F9F138AF-B38B-419B-A585-89D1DF76F7F3}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{F31AFC95-2ABF-4AA2-BC0B-A4AE51E25EEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F31AFC95-2ABF-4AA2-BC0B-A4AE51E25EEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F31AFC95-2ABF-4AA2-BC0B-A4AE51E25EEC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB696FD6-0936-4274-A3C4-EBC4960EDBEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB696FD6-0936-4274-A3C4-EBC4960EDBEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB696FD6-0936-4274-A3C4-EBC4960EDBEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB696FD6-0936-4274-A3C4-EBC4960EDBEB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F9F138AF-B38B-419B-A585-89D1DF76F7F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F9F138AF-B38B-419B-A585-89D1DF76F7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9F138AF-B38B-419B-A585-89D1DF76F7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU

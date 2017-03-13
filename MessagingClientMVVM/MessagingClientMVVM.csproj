@@ -67,7 +67,7 @@
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MessageCollectionViewModel.cs" />
     <Compile Include="ViewModels\MessagingViewModel.cs" />
-    <Compile Include="ViewModels\MTObservableCollection.cs" />
+    <Compile Include="MTObservableCollection.cs" />
     <Compile Include="Views\LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>

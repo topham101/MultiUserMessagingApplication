@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-namespace MessagingClientMVVM.ViewModels
+namespace MessagingClientMVVM
 {
     //Originally by: Franck - http://stackoverflow.com/a/23108315
     public class MTObservableCollection<T> : ObservableCollection<T>

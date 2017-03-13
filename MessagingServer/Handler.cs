@@ -25,6 +25,7 @@ namespace MessagingServer
         private string UserRegisterInsert = "INSERT INTO Users(UserName, DisplayName, user_password) VALUES(@username, 'New User', @password);";
         private string UserNameUpdate = "UPDATE Users SET DisplayName=@NewDispName WHERE Id=@UserID;";
         private string FindFriendshipsQuery = "SELECT * FROM Friendships WHERE UserID_1 = @userID OR UserID_2 = @userID;";
+        private string NewFriendshipsInsert = "INSERT INTO Friendships (UserID_1, UserID_2) VALUES (@userID_1, @userID_2);";
 
         private const int PollRateMS = 500;
         private StreamReader sr;
@@ -403,6 +404,7 @@ namespace MessagingServer
                             sendMessage(new Message(MessageCode.C013, recMessage.receiverID,
                                 connectedUserID, recMessage.createdTimeStamp.ToString()));
                         }
+                        CreateNewFriendship(recMessage.senderID, recMessage.receiverID);
                     }
                     else
                     {
@@ -653,6 +655,28 @@ namespace MessagingServer
                         else throw new Exception("Invalid SQL Query Result");
                     }
                 return;
+            }
+        }
+        private bool CreateNewFriendship(int userID1, int userID2)
+        {
+            try
+            {
+                using (SqlCommand NewFriendshipCommand = new SqlCommand(NewFriendshipsInsert, sqlConn))
+                {
+                    NewFriendshipCommand.Parameters.Add(
+                        new SqlParameter("userID_1", userID1));
+                    NewFriendshipCommand.Parameters.Add(
+                        new SqlParameter("userID_2", userID2));
+
+                    if (NewFriendshipCommand.ExecuteNonQuery() > 1)
+                        throw new Exception("Query Failed?");
+
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
     }
