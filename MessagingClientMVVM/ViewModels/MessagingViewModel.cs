@@ -173,6 +173,7 @@ namespace MessagingClientMVVM
                 else return "Ignore";
             }
         } // Not used atm? or is it... :s
+        public NavigationService ns { get; set; }
         #endregion
 
         #region Methods

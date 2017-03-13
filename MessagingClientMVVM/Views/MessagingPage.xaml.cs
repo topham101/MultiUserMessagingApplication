@@ -24,5 +24,13 @@ namespace MessagingClientMVVM
         {
             InitializeComponent();
         }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (DataContext != null)
+            {
+                ((MessagingViewModel)DataContext).ns = NavigationService.GetNavigationService(this);
+            }
+        }
     }
 }

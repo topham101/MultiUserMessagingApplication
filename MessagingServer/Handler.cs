@@ -20,6 +20,10 @@ namespace MessagingServer
             Properties.Settings.Default.MessagingServerConnectionString;
 
         private SqlConnection sqlConn;
+        private string UserLoginQuery = "SELECT * FROM Users WHERE UserName=@username AND user_password=@password;";
+        private string CheckUserExistsQuery = "select count(1) from Users where UserName=@username;";
+        private string UserRegisterInsert = "INSERT INTO Users(UserName, DisplayName, user_password) VALUES(@username, 'New User', @password);";
+        private string UserNameUpdate = "UPDATE Users SET DisplayName=@NewDispName WHERE Id=@UserID;";
 
         private const int PollRateMS = 500;
         private StreamReader sr;
@@ -258,8 +262,9 @@ namespace MessagingServer
             switch (recMessage.Code)
             {
                 case MessageCode.C001:
-                    if (sendMessage(new Message(MessageCode.C002, 0, recMessage.senderID, recMessage.MessageString)))
-                        DisplayName = recMessage.MessageString;
+                    if (UpdateDispName(recMessage.MessageString) && sendMessage(
+                        new Message(MessageCode.C002, 0, recMessage.senderID, recMessage.MessageString)))
+                            DisplayName = recMessage.MessageString;
                     else sendMessage(new Message(MessageCode.C007, 0, recMessage.senderID, recMessage.MessageString));
                     break;
                 case MessageCode.C002:
@@ -431,7 +436,7 @@ namespace MessagingServer
             return true;
         }
 
-        private bool connectionWorking() // ADD LOGIN DETAILS LATER?
+        private bool connectionWorking()
         {
             string response;
             Message recMess;
@@ -469,59 +474,165 @@ namespace MessagingServer
                     !string.IsNullOrWhiteSpace(detailsArray[0]) &&
                     !string.IsNullOrWhiteSpace(detailsArray[1]))
                 {
-                    if (!isNewUser)
+                    if (!isNewUser) // Log in User
                     {
-                        SqlCommand loginCommand = new SqlCommand("SELECT * FROM Users " + 
-                            "WHERE UserName=@username AND user_password=@password;",
-                            sqlConn);
-                        loginCommand.Parameters.Add(
-                            new SqlParameter("username", detailsArray[0]));
-                        loginCommand.Parameters.Add(
-                            new SqlParameter("password", detailsArray[1]));
-                        using (SqlDataReader reader = loginCommand.ExecuteReader())
+                        // Check username and password combination exists
+                        // Returns ID and DisplayName to Client
+                        try
                         {
-                            // if anything to read------??
+                            Tuple<int, string> LoginReturn = 
+                                QueryLoginData(detailsArray[0], detailsArray[1]);
 
-                            // REPLACE with DB code
-                            string username; // Find in DBS
-                            string password;
-                            int tempid;
-                            string tempDisplayName;
-                            // REPLACE
-                            if (reader.Read())
-                            {
-                                tempid = (int)reader[0];
-                                username = (string)reader[1];
-                                tempDisplayName = (string)reader[2];
-                                password = (string)reader[3];
+                            sendMessage(new Message(MessageCode.C002, 0, connectedUserID,
+                                string.Format(LoginReturn.Item1 + ";" + LoginReturn.Item2)));
 
-
-                                connectedUserID = tempid;
-                                DisplayName = tempDisplayName;
-
-                                if (detailsArray[0] == username && detailsArray[1]
-                                    == password)
-                                {
-                                    sendMessage(new Message(MessageCode.C002, 0,
-                                        connectedUserID, string.Format
-                                        (tempid + ";" + tempDisplayName)));
-
-                                    // Load friends list in here
-
-                                    return true;
-                                }
-                            }
                         }
-                        loginCommand.Dispose();
+                        catch (Exception)
+                        {
+                            sendMessage(new Message(MessageCode.C021, 0,
+                                connectedUserID, "Incorrect Login Details"));
+                            return false;
+                        }
+
+                        // Load friends list in here
+
+                        return true;
                     }
-                    else
+                    else // Register New User
                     {
-                        // register new user here
+                        try
+                        {
+                            // Check if user already exists
+                            if (DoesUserExist(detailsArray[0]))
+                            {
+                                sendMessage(new Message(MessageCode.C021, 0,
+                                connectedUserID, "Username already taken."));
+                                return false;
+                            }
+
+                            // Create new user entry
+                            Tuple<int, string> RegisterReturn = 
+                                CreateNewUser(detailsArray[0], detailsArray[1]);
+
+                            // Return ID and Display Name to client
+                            sendMessage(new Message(MessageCode.C002, 0, connectedUserID,
+                                string.Format(RegisterReturn.Item1 + ";" + RegisterReturn.Item2)));
+                        }
+                        catch (Exception)
+                        {
+                            sendMessage(new Message(MessageCode.C021, 0,
+                                connectedUserID, "Unknown Error"));
+                            return false;
+                        }
+
+                        // Load friends list in here
+
+                        return true;
                     }
                 }
             }
             sendMessage(new Message(MessageCode.C021, 0, connectedUserID, ""));
             return false;
+        }
+
+        private Tuple<int, string> QueryLoginData(string usernameInput, string passwordInput)
+        {
+            using (SqlCommand loginCommand = new SqlCommand(UserLoginQuery, sqlConn))
+            {
+                loginCommand.Parameters.Add(
+                    new SqlParameter("username", usernameInput));
+                loginCommand.Parameters.Add(
+                    new SqlParameter("password", passwordInput));
+
+                string username; // Find in DBS
+                string password;
+                int tempId;
+                string tempDisplayName;
+
+                using (SqlDataReader reader = loginCommand.ExecuteReader())
+                {
+                    if (!reader.Read() && !reader.HasRows)
+                        throw new Exception("No Results Found");
+
+                    tempId = (int)reader[0];
+                    username = (string)reader[1];
+                    tempDisplayName = (string)reader[2];
+                    password = (string)reader[3];
+
+                    connectedUserID = tempId;
+                    DisplayName = tempDisplayName;
+
+                    // If incorrect results, throw Exception
+                    if (usernameInput != username || passwordInput != password)
+                        throw new Exception("Unknown SQL Results Error");
+
+                    if (reader.Read()) // If more than one line throw Exception
+                        throw new Exception("Multiple Results Found");
+                        
+                    return new Tuple<int, string>(tempId, tempDisplayName);
+                }
+            }
+        }
+
+        private bool DoesUserExist(string usernameInput)
+        {
+            using (SqlCommand CheckExistCommand = new SqlCommand(CheckUserExistsQuery, sqlConn))
+            {
+                CheckExistCommand.Parameters.Add(
+                    new SqlParameter("username", usernameInput));
+
+                using (SqlDataReader reader = CheckExistCommand.ExecuteReader())
+                {
+                    if (!reader.Read() && !reader.HasRows)
+                        throw new Exception("No Results Found");
+
+                    int returnVal = (int)reader[0];
+
+                    if (reader.Read()) // If more than one line throw Exception
+                        throw new Exception("Multiple Results Found");
+
+                    if (returnVal == 1)
+                        return true;
+                    else return false;
+                }
+            }
+        }
+
+        private Tuple<int, string> CreateNewUser(string usernameInput, string passwordInput)
+        {
+            using (SqlCommand RegisterCommand = new SqlCommand(UserRegisterInsert, sqlConn))
+            {
+                RegisterCommand.Parameters.Add(
+                    new SqlParameter("username", usernameInput));
+                RegisterCommand.Parameters.Add(
+                    new SqlParameter("password", passwordInput));
+
+                if (RegisterCommand.ExecuteNonQuery() > 1)
+                    throw new Exception("Query Failed?");
+
+                return QueryLoginData(usernameInput, passwordInput);
+            }
+        }
+
+        private bool UpdateDispName(string DisplayNameInput)
+        {
+            try
+            {
+                using (SqlCommand UpdateCommand = new SqlCommand(UserNameUpdate, sqlConn))
+                {
+                    UpdateCommand.Parameters.Add(new SqlParameter("NewDispName", DisplayNameInput));
+                    UpdateCommand.Parameters.Add(new SqlParameter("UserID", connectedUserID));
+
+                    if (UpdateCommand.ExecuteNonQuery() > 1)
+                        throw new Exception("Update Failed?");
+
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
