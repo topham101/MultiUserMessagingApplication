@@ -25,8 +25,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Grid.Row="0" Content="{Binding Handler.DisplayName}" VerticalAlignment="Center" 
-                           HorizontalAlignment="Center" />
+                <Label Grid.Column="0" Grid.Row="0" Content="{Binding ScreenDisplayName}"
+                       VerticalAlignment="Center" HorizontalAlignment="Center" />
                 <Label Grid.Column="2" Grid.Row="0" Content="{Binding Handler.ConnectedString}" Name="rec"
                            VerticalContentAlignment="Center" Margin="-10,0,0,0"/>
                 <ListView Grid.Column="0" Grid.Row="1" Height="Auto" Width="Auto" x:Name="ContactsListView" 
@@ -106,7 +106,7 @@
                             HorizontalAlignment="Right" Margin="15,0,0,0"
                             Command="{Binding IgnoreRequestCommand}"/>
                 </DockPanel>
-                
+
                 <Label Width="Auto" Height="26" Content="Add Friend" HorizontalAlignment="Left"
                         Margin="0,0,0,0" Grid.Row="1"  Grid.Column="2" VerticalAlignment="Bottom"/>
                 <TextBox Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0"
@@ -129,16 +129,16 @@
                         VerticalAlignment="Top"/>
 
                 <DockPanel Grid.Row="5" Grid.Column="2" Width="Auto" Height="Auto"
-                           HorizontalAlignment="Left">
+                           HorizontalAlignment="Left" Visibility="Collapsed">
                     <Label Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
                         Grid.Row="5" VerticalAlignment="Center" Width="160" 
                         VerticalContentAlignment="Center" Content="You are currently appearing:"/>
-                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,0" 
-                            Grid.Row="5" VerticalAlignment="Center" Width="160" Foreground="Red"
+                    <Label Grid.Column="2" HorizontalAlignment="Left" Height="26" Margin="0,0,0,12" 
+                            Grid.Row="5" VerticalAlignment="Bottom" Width="160" Foreground="Red"
                             VerticalContentAlignment="Center" Content="Offline"/>
                 </DockPanel>
                 <DockPanel Grid.Row="5" Grid.Column="3" Width="Auto" Height="Auto"
-                           HorizontalAlignment="Left">
+                           HorizontalAlignment="Left" Visibility="Collapsed">
                     <Button Width="90" Height="26" Content="Appear Online" HorizontalAlignment="Left"
                             Margin="0,0,15,0"/>
                     <Button Width="90" Height="26" Content="Appear Offline" HorizontalAlignment="Right"
@@ -146,7 +146,7 @@
                 </DockPanel>
                 <Button Width="90" Height="24" Content="Sign Out" HorizontalAlignment="Center"
                         Margin="0,0,0,0" Grid.Row="8"  Grid.Column="3" VerticalAlignment="Center"
-                        Foreground="Crimson" FontWeight="Bold"/>
+                        Foreground="Crimson" FontWeight="Bold" Command="{Binding SignOutCommand}"/>
             </Grid>
         </TabItem>
     </TabControl>

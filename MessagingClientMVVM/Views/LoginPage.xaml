@@ -42,11 +42,19 @@
             <Label Grid.Column="1" Grid.Row="1" Height="25" Width="Auto" Content="Username" />
             <TextBox Grid.Column="1" Grid.Row="2" Height="25" Width="Auto" x:Name="UserNameTextBox"
                     Text="{Binding Username, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"/>
+                     VerticalContentAlignment="Center">
+                <TextBox.InputBindings>
+                    <KeyBinding Command="{Binding ConnectCommand}" Key="Return" />
+                </TextBox.InputBindings>
+            </TextBox>
             <Label Grid.Column="1" Grid.Row="3" Height="25" Width="Auto" Content="Password"/>
             <TextBox Grid.Column="1" Grid.Row="4" Height="25" Width="Auto" x:Name="PasswordTextBox"
                      Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center" />
+                     VerticalContentAlignment="Center">
+                <TextBox.InputBindings>
+                    <KeyBinding Command="{Binding ConnectCommand}" Key="Return" />
+                </TextBox.InputBindings>
+            </TextBox>
             <Button x:Name="LoginButton" Content="Login" HorizontalAlignment="Center" Height="25" Width="120"
                     VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"
                     Command="{Binding ConnectCommand}"/>

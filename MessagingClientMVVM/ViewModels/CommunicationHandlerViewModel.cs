@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace MessagingClientMVVM.ViewModels
 {
@@ -24,6 +25,7 @@ namespace MessagingClientMVVM.ViewModels
             {
                 CommunicationHandler.myID = value;
                 RaisePropertyChanged("myID");
+                RaisePropertyChanged("ScreenDisplayName");
             }
         }
         public string DisplayName

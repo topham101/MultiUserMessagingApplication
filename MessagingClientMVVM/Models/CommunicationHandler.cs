@@ -131,11 +131,20 @@ namespace MessagingClientMVVM.Models
         {
             Connected = false;
             if (sr != null)
-                sr.Close();
+            {
+                sr.Dispose();
+                sr = null;
+            }
             if (sw != null)
-                sw.Close();
+            {
+                sw.Dispose();
+                sw = null;
+            }
             if (Client != null)
+            {
                 Client.Close();
+                Client = null;
+            }
         }
         #endregion
     }

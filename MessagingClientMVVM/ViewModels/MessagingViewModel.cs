@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 using System.Windows.Threading;
 
 namespace MessagingClientMVVM
@@ -84,6 +85,7 @@ namespace MessagingClientMVVM
             {
                 _users = value;
                 RaisePropertyChanged("Users");
+                SelectedUser = null;
             }
         }
         public string MessageInput
@@ -111,8 +113,9 @@ namespace MessagingClientMVVM
                 if (value != null)
                 {
                     _messageCollections.SelectedUserID = _selectedUser.ID;
-                    RaisePropertyChanged("MessageCollections");
                 }
+                else _messageCollections.SelectedUserID = null;
+                RaisePropertyChanged("MessageCollections");
                 MessageInput = "";
             }
         }
@@ -173,6 +176,13 @@ namespace MessagingClientMVVM
                 else return "Ignore";
             }
         } // Not used atm? or is it... :s
+        public string ScreenDisplayName
+        {
+            get
+            {
+                return _handler.DisplayName + " #" + _handler.myID.ToString("D4");
+            }
+        }
         public NavigationService ns { get; set; }
         #endregion
 
@@ -205,7 +215,6 @@ namespace MessagingClientMVVM
                 }
             }
         }
-
         private void MessageHandler(Message tempMessage)
         {
             switch (tempMessage.Code)
@@ -213,6 +222,7 @@ namespace MessagingClientMVVM
                 case MessageCode.C002: // Implement Later
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
                         _handler.DisplayName = tempMessage.MessageString;
+                        RaisePropertyChanged("ScreenDisplayName");
                     }));
                     break;
                 case MessageCode.C003: // Message from another User
@@ -243,7 +253,11 @@ namespace MessagingClientMVVM
                 case MessageCode.C010:
                     Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate () {
                         SelectedUser = null;
-                        Users = Handler.ParseC010Message(tempMessage.MessageString);
+                        MTObservableCollection<User> allFriends = Handler.ParseC010Message(tempMessage.MessageString);
+                        Users.Clear();
+                        foreach (User friend in allFriends)
+                            if (friend.IsOnline)
+                                Users.Add(friend);
                     }));
                     break;
                 case MessageCode.C011: // Implement Later
@@ -368,6 +382,7 @@ namespace MessagingClientMVVM
             {
                 _handler.DisplayName = NewDisplayName;
                 NewDisplayName = string.Empty;
+                RaisePropertyChanged("ScreenDisplayName");
             }
             else
             {
@@ -395,6 +410,19 @@ namespace MessagingClientMVVM
             else return false;
         }
         public ICommand SendFriendRequestCommand { get { return new RelayCommand(SendFriendRequest, CanSendFriendRequest); } }
+
+        void SignOut()
+        {
+            if(_handler.Connected)
+                _handler.CloseConnection();
+            ns.Navigate(new Uri("Views/LoginPage.xaml", UriKind.Relative));
+        }
+        bool CanSignOut()
+        {
+            return true;
+        }
+        public ICommand SignOutCommand { get { return new RelayCommand(SignOut, CanSignOut); } }
+
         #endregion
     }
 }

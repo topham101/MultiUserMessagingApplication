@@ -24,6 +24,7 @@ namespace MessagingServer
         private string CheckUserExistsQuery = "select count(1) from Users where UserName=@username;";
         private string UserRegisterInsert = "INSERT INTO Users(UserName, DisplayName, user_password) VALUES(@username, 'New User', @password);";
         private string UserNameUpdate = "UPDATE Users SET DisplayName=@NewDispName WHERE Id=@UserID;";
+        private string FindFriendshipsQuery = "SELECT * FROM Friendships WHERE UserID_1 = @userID OR UserID_2 = @userID;";
 
         private const int PollRateMS = 500;
         private StreamReader sr;
@@ -73,12 +74,14 @@ namespace MessagingServer
 
         public void beginHandle(Socket connection)
         {
+            // Initialise
             NetworkStream socketStream = new NetworkStream(connection);
             sr = new StreamReader(socketStream);
             sw = new StreamWriter(socketStream);
             string ip = connection.RemoteEndPoint.ToString();
             sqlConn = new SqlConnection(GlobalConnectionString);
 
+            // Begin Communication
             try
             {
                 sqlConn.Open();
@@ -88,6 +91,13 @@ namespace MessagingServer
                 {
                     Console.WriteLine("Connection Working: " + ip + " USER: "
                         + connectedUserID.ToString("D4") + " Name: " + DisplayName);
+
+                    // Get friends from database
+                    loadFriends();
+                    // Send Friends Status
+                    sendMessage(new Message(MessageCode.C010, 0, connectedUserID,
+                        GetAllFriendStatus()));
+
                     // Create or Find messages queue
                     if (!Program.PassOnMessageDictionary.TryGetValue(connectedUserID, out userMessages))
                     {
@@ -96,12 +106,13 @@ namespace MessagingServer
                             Console.WriteLine("Dictionary Entry Added Successfully (ID: "
                                 + connectedUserID.ToString("D4") + ")");
                     }
-                    // Create new friend update entry for the Connected User
+
+                    // Create new friend-update entry for the Connected User
                     if (!Program.OnlineStatusUpdates.TryAdd(connectedUserID, false))
                         throw new Exception("Online Status Update List Add ~ Failed");
                     Console.WriteLine("Online Status Dictionary Entry Added Successfully");
 
-                    // Add online status to dictionary
+                    // Set Online Status
                     AppearingOnline = true;
                     Console.WriteLine("User: " + connectedUserID + " Appearing Online");
 
@@ -117,6 +128,8 @@ namespace MessagingServer
             {
                 // Cleanup
                 AppearingOnline = false;
+                updateFriendsOfNewStatus();
+
                 bool tempBool;
                 if (Program.OnlineStatusUpdates.TryRemove(connectedUserID, out tempBool))
                     Console.WriteLine(connectedUserID.ToString("D4")
@@ -154,7 +167,6 @@ namespace MessagingServer
                     throw new Exception("Online Status Update Fail");
             }
         }
-
         private void updateFriendsOfNewStatus()
         {
             foreach (int friendID in friendList)
@@ -162,7 +174,6 @@ namespace MessagingServer
                 Program.OnlineStatusUpdates.TryUpdate(friendID, true, false);
             }
         }
-
         private void socketPoll(Socket connection)
         {
             while (connection.IsConnected())
@@ -211,7 +222,6 @@ namespace MessagingServer
             }
             return;
         }
-
         private void messagePassOnHandler(Message recMessage)
         {
             Console.WriteLine(recMessage.Code + " Passed on to " + connectedUserID + ". Handled.");
@@ -237,7 +247,6 @@ namespace MessagingServer
             }
             
         }
-
         private string GetAllFriendStatus()
         {
             string friendsStatusList = "";
@@ -247,7 +256,7 @@ namespace MessagingServer
                 string displayName;
                 if (Program.displayNameDictionary.ContainsKey(friendID))
                     displayName = Program.displayNameDictionary[friendID];
-                else displayName = "NODISPLAYNAME";
+                else displayName = "_NODISPLAYNAME";
                 if (Program.UsersAppearingOnlineDict.TryGetValue(friendID,out IsFriendOnline) && IsFriendOnline)
                 {
                     friendsStatusList += friendID.ToString("D4") + 'T' + displayName + ';';
@@ -256,7 +265,6 @@ namespace MessagingServer
             }
             return friendsStatusList;
         }
-
         private void messageHandler(Message recMessage)
         {
             switch (recMessage.Code)
@@ -421,7 +429,6 @@ namespace MessagingServer
                     break;
             }
         }
-
         private bool sendMessage(Message message)
         {
             try
@@ -435,7 +442,6 @@ namespace MessagingServer
             }
             return true;
         }
-
         private bool connectionWorking()
         {
             string response;
@@ -534,7 +540,6 @@ namespace MessagingServer
             sendMessage(new Message(MessageCode.C021, 0, connectedUserID, ""));
             return false;
         }
-
         private Tuple<int, string> QueryLoginData(string usernameInput, string passwordInput)
         {
             using (SqlCommand loginCommand = new SqlCommand(UserLoginQuery, sqlConn))
@@ -573,7 +578,6 @@ namespace MessagingServer
                 }
             }
         }
-
         private bool DoesUserExist(string usernameInput)
         {
             using (SqlCommand CheckExistCommand = new SqlCommand(CheckUserExistsQuery, sqlConn))
@@ -597,7 +601,6 @@ namespace MessagingServer
                 }
             }
         }
-
         private Tuple<int, string> CreateNewUser(string usernameInput, string passwordInput)
         {
             using (SqlCommand RegisterCommand = new SqlCommand(UserRegisterInsert, sqlConn))
@@ -613,7 +616,6 @@ namespace MessagingServer
                 return QueryLoginData(usernameInput, passwordInput);
             }
         }
-
         private bool UpdateDispName(string DisplayNameInput)
         {
             try
@@ -632,6 +634,25 @@ namespace MessagingServer
             catch
             {
                 return false;
+            }
+        }
+        private void loadFriends()
+        {
+            using (SqlCommand LoadFriendsCommand = new SqlCommand(FindFriendshipsQuery, sqlConn))
+            {
+                LoadFriendsCommand.Parameters.Add(new SqlParameter("UserID", connectedUserID));
+
+                List<int> friends = new List<int>();
+                using (SqlDataReader Reader = LoadFriendsCommand.ExecuteReader())
+                    while (Reader.Read())
+                    {
+                        if ((int)Reader[1] == connectedUserID)
+                            friendList.Add((int)Reader[2]);
+                        else if ((int)Reader[2] == connectedUserID)
+                            friendList.Add((int)Reader[1]);
+                        else throw new Exception("Invalid SQL Query Result");
+                    }
+                return;
             }
         }
     }
