@@ -12,19 +12,15 @@ using System.Collections.Concurrent;
 
 namespace MessagingServer
 {
-    // THINGS TO DO:
-    // login
+    // Ideas:
     // acount details & picture
     // chat customisation?
     // proper server controls
-    // change MessageCodeTable to read from text file
     // send messages to people who are offline
     // attempt fix of protocol code file
-    // signup user ability
-    // Tell users if their message has been sent successfully
     // Error handling and logging
 
-    // CHANGE C019 TO DELETE FRIEND REQUEST not delcline them. Or add a new command for this?
+    // CHANGE C019 TO DELETE FRIEND REQUEST not decline them. Or add a new command for this?
 
     class Program
     {
